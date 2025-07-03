@@ -3,41 +3,275 @@
 <head>
     <title>New Follow-Up Session</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .ai-section {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0A6847;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .ai-button {
+            background-color: #0A6847;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .ai-button:hover {
+            background-color: #085538;
+        }
+        .ai-response {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            white-space: pre-wrap;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .field-with-ai {
+            position: relative;
+        }
+        .ai-field-button {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #0A6847;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .ai-field-button:hover {
+            background-color: #085538;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>Add Follow-Up for {{ patient_id }}</h2>
+        
+        <!-- AI Assistance Section -->
+        <div class="ai-section">
+            <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI Follow-up Assistant</h3>
+            <button type="button" class="ai-button" onclick="getFollowupRecommendations()">
+                Get AI Session Recommendations
+            </button>
+            <div id="ai-recommendations" class="ai-response"></div>
+        </div>
+
         <form method="POST">
             <label>Session Number:</label>
-            <input type="text" name="session_number" class="input-field" required>
+            <div class="field-with-ai">
+                <input type="text" name="session_number" id="session_number" class="input-field" required>
+            </div>
 
             <label>Date:</label>
-            <input type="date" name="session_date" class="input-field" required>
+            <input type="date" name="session_date" id="session_date" class="input-field" required>
 
             <label>Grade of Achievement:</label>
-            <select name="grade" class="input-field" required>
-                <option value="">Select</option>
-                <option value="Not Achieved">Not Achieved</option>
-                <option value="Partially Achieved">Partially Achieved</option>
-                <option value="Fully Achieved">Fully Achieved</option>
-            </select>
+            <div class="field-with-ai">
+                <select name="grade" id="grade" class="input-field" required style="padding-right: 50px;">
+                    <option value="">Select</option>
+                    <option value="Not Achieved">Not Achieved</option>
+                    <option value="Partially Achieved">Partially Achieved</option>
+                    <option value="Fully Achieved">Fully Achieved</option>
+                </select>
+                <button type="button" class="ai-field-button" onclick="getGradeSuggestion()">🤖</button>
+            </div>
 
             <label>Perception of Treatment:</label>
-            <select name="belief_treatment" class="input-field">
-                <option value="">Select</option>
-                <option value="Very Effective">Very Effective</option>
-                <option value="Somewhat Effective">Somewhat Effective</option>
-                <option value="Not Effective">Not Effective</option>
-            </select>
+            <div class="field-with-ai">
+                <select name="belief_treatment" id="belief_treatment" class="input-field" style="padding-right: 50px;">
+                    <option value="">Select</option>
+                    <option value="Very Effective">Very Effective</option>
+                    <option value="Somewhat Effective">Somewhat Effective</option>
+                    <option value="Not Effective">Not Effective</option>
+                </select>
+                <button type="button" class="ai-field-button" onclick="getPerceptionSuggestion()">🤖</button>
+            </div>
 
             <label>Feedback:</label>
-            <textarea name="belief_feedback" class="input-field" rows="3" placeholder="Enter feedback..."></textarea>
+            <div class="field-with-ai">
+                <textarea name="belief_feedback" id="belief_feedback" class="input-field" rows="3" 
+                          placeholder="Enter feedback..." style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getFeedbackSuggestions()" style="top: 20px;">🤖</button>
+            </div>
 
             <label>Plan for Next Treatment:</label>
-            <textarea name="treatment_plan" class="input-field" rows="3" placeholder="Describe treatment strategy..."></textarea>
+            <div class="field-with-ai">
+                <textarea name="treatment_plan" id="treatment_plan" class="input-field" rows="3" 
+                          placeholder="Describe treatment strategy..." style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getTreatmentPlanSuggestions()" style="top: 20px;">🤖</button>
+            </div>
 
             <button type="submit" class="button">Save Follow-Up</button>
         </form>
     </div>
+
+    <script>
+        const patientId = '{{ patient_id }}';
+
+        // Auto-populate session number and date on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-populate today's date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('session_date').value = today;
+            
+            // Auto-calculate next session number (you can enhance this)
+            document.getElementById('session_number').value = '1';
+        });
+
+        function getFollowupRecommendations() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '🤖 Analyzing...';
+            button.disabled = true;
+
+            const sessionNumber = document.getElementById('session_number').value || '1';
+
+            fetch('/api/ai/followup-recommendations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    patient_id: patientId,
+                    session_number: sessionNumber
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('AI Error: ' + data.error);
+                } else {
+                    const responseDiv = document.getElementById('ai-recommendations');
+                    responseDiv.innerHTML = '🤖 AI Recommendations for Session ' + sessionNumber + ':\n\n' + data.response;
+                    responseDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+            })
+            .finally(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+
+        function getGradeSuggestion() {
+            // Simple context-based suggestions
+            const suggestions = [
+                "Partially Achieved - Typical for early sessions",
+                "Not Achieved - May indicate need for plan adjustment",
+                "Fully Achieved - Excellent progress indicator"
+            ];
+            
+            const grade = prompt("AI Suggestion:\n\n" + suggestions.join("\n\n") + "\n\nChoose: Not Achieved, Partially Achieved, or Fully Achieved");
+            if (grade) {
+                document.getElementById('grade').value = grade;
+            }
+        }
+
+        function getPerceptionSuggestion() {
+            const currentGrade = document.getElementById('grade').value;
+            let suggestions = [];
+            
+            if (currentGrade === 'Fully Achieved') {
+                suggestions = ["Very Effective", "Somewhat Effective"];
+            } else if (currentGrade === 'Partially Achieved') {
+                suggestions = ["Somewhat Effective", "Very Effective"];
+            } else if (currentGrade === 'Not Achieved') {
+                suggestions = ["Not Effective", "Somewhat Effective"];
+            } else {
+                suggestions = ["Very Effective", "Somewhat Effective", "Not Effective"];
+            }
+            
+            const perception = prompt("AI Suggestion based on grade:\n\n" + suggestions.join("\n") + "\n\nChoose perception:");
+            if (perception) {
+                document.getElementById('belief_treatment').value = perception;
+            }
+        }
+
+        function getFeedbackSuggestions() {
+            const grade = document.getElementById('grade').value;
+            const perception = document.getElementById('belief_treatment').value;
+            
+            let suggestions = [];
+            
+            if (grade === 'Fully Achieved') {
+                suggestions = [
+                    "Patient reports significant improvement in pain and function",
+                    "Patient can now perform daily activities without limitations",
+                    "Patient feels confident about managing condition independently"
+                ];
+            } else if (grade === 'Partially Achieved') {
+                suggestions = [
+                    "Patient notices some improvement but still experiences limitations",
+                    "Patient reports good days and bad days with symptoms",
+                    "Patient feels treatment is helping but progress is gradual"
+                ];
+            } else {
+                suggestions = [
+                    "Patient reports minimal change in symptoms",
+                    "Patient feels frustrated with lack of progress",
+                    "Patient questioning if treatment approach is effective"
+                ];
+            }
+            
+            const feedback = prompt("AI Feedback Suggestions:\n\n" + suggestions.join("\n\n") + "\n\nSelect or type custom feedback:");
+            if (feedback) {
+                const currentText = document.getElementById('belief_feedback').value;
+                if (currentText) {
+                    document.getElementById('belief_feedback').value = currentText + '\n\n' + feedback;
+                } else {
+                    document.getElementById('belief_feedback').value = feedback;
+                }
+            }
+        }
+
+        function getTreatmentPlanSuggestions() {
+            const grade = document.getElementById('grade').value;
+            
+            let suggestions = [];
+            
+            if (grade === 'Fully Achieved') {
+                suggestions = [
+                    "Progress to advanced strengthening and functional activities",
+                    "Begin discharge planning and home program optimization",
+                    "Focus on prevention strategies and long-term maintenance"
+                ];
+            } else if (grade === 'Partially Achieved') {
+                suggestions = [
+                    "Continue current approach with minor progressions",
+                    "Add complementary techniques (manual therapy, modalities)",
+                    "Modify exercise parameters (intensity, frequency, duration)"
+                ];
+            } else {
+                suggestions = [
+                    "Reassess treatment approach and consider modifications",
+                    "Investigate potential barriers to recovery",
+                    "Consider referral for additional specialist input"
+                ];
+            }
+            
+            const plan = prompt("AI Treatment Plan Suggestions:\n\n" + suggestions.join("\n\n") + "\n\nSelect or type custom plan:");
+            if (plan) {
+                const currentText = document.getElementById('treatment_plan').value;
+                if (currentText) {
+                    document.getElementById('treatment_plan').value = currentText + '\n\n' + plan;
+                } else {
+                    document.getElementById('treatment_plan').value = plan;
+                }
+            }
+        }
+    </script>
 </body>
 </html>

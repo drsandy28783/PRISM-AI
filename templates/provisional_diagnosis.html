@@ -3,35 +3,242 @@
 <head>
     <title>Provisional Diagnosis - PRISM</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .ai-section {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0A6847;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .ai-button {
+            background-color: #0A6847;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .ai-button:hover {
+            background-color: #085538;
+        }
+        .ai-response {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            white-space: pre-wrap;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .field-with-ai {
+            position: relative;
+        }
+        .ai-field-button {
+            position: absolute;
+            right: 10px;
+            top: 30px;
+            background-color: #0A6847;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .ai-field-button:hover {
+            background-color: #085538;
+        }
+        .ai-field-button.select {
+            top: 50%;
+            transform: translateY(-50%);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>Provisional Diagnosis for {{ patient_id }}</h2>
+        
+        <!-- AI Assistance Section -->
+        <div class="ai-section">
+            <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI Diagnostic Assistant</h3>
+            <p style="margin-bottom: 15px; color: #555;">Get comprehensive diagnostic analysis based on complete clinical assessment.</p>
+            <button type="button" class="ai-button" onclick="getDiagnosticInsights()">
+                Get AI Diagnostic Analysis
+            </button>
+            <div id="ai-diagnostic-insights" class="ai-response"></div>
+        </div>
+
         <form method="POST">
             <label for="likelihood">Likelihood of Diagnosis:</label>
-            <textarea name="likelihood" id="likelihood" class="input-field" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea name="likelihood" id="likelihood" class="input-field" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getLikelihoodSuggestion()">🤖</button>
+            </div>
 
             <label for="structure_fault">Possible Structure at Fault:</label>
-            <textarea name="structure_fault" id="structure_fault" class="input-field" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea name="structure_fault" id="structure_fault" class="input-field" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getStructureSuggestion()">🤖</button>
+            </div>
 
             <label for="symptom">Symptom:</label>
-            <textarea name="symptom" id="symptom" class="input-field" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea name="symptom" id="symptom" class="input-field" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getSymptomSuggestion()">🤖</button>
+            </div>
 
             <label for="findings_support">Findings Supporting the Diagnosis:</label>
-            <textarea name="findings_support" id="findings_support" class="input-field" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea name="findings_support" id="findings_support" class="input-field" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getSupportingSuggestion()">🤖</button>
+            </div>
 
             <label for="findings_reject">Findings Rejecting the Diagnosis:</label>
-            <textarea name="findings_reject" id="findings_reject" class="input-field" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea name="findings_reject" id="findings_reject" class="input-field" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getRejectingSuggestion()">🤖</button>
+            </div>
 
             <label for="hypothesis_supported">Hypothesis Supported?:</label>
-            <select name="hypothesis_supported" id="hypothesis_supported" class="input-field" required>
-                <option value="">Select</option>
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-            </select>
+            <div class="field-with-ai">
+                <select name="hypothesis_supported" id="hypothesis_supported" class="input-field" required style="padding-right: 50px;">
+                    <option value="">Select</option>
+                    <option value="Yes">Yes</option>
+                    <option value="No">No</option>
+                </select>
+                <button type="button" class="ai-field-button select" onclick="getHypothesisSuggestion()">🤖</button>
+            </div>
 
             <button class="button" type="submit">Save & Continue</button>
         </form>
     </div>
+
+    <script>
+        const patientId = '{{ patient_id }}';
+
+        function getDiagnosticInsights() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '🤖 Analyzing...';
+            button.disabled = true;
+
+            fetch('/api/ai/provisional-diagnosis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    patient_id: patientId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('AI Error: ' + data.error);
+                } else {
+                    const responseDiv = document.getElementById('ai-diagnostic-insights');
+                    responseDiv.innerHTML = '🤖 AI Diagnostic Analysis:\n\n' + data.response;
+                    responseDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+            })
+            .finally(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+
+        function getLikelihoodSuggestion() {
+            const suggestions = [
+                "High likelihood (>80%) - Strong clinical evidence supports diagnosis",
+                "Moderate likelihood (60-80%) - Good evidence with some uncertainty", 
+                "Low-moderate likelihood (40-60%) - Mixed clinical evidence",
+                "Low likelihood (<40%) - Limited evidence supporting diagnosis",
+                "Differential diagnosis required - Multiple possibilities exist"
+            ];
+            insertSuggestion('likelihood', 'Likelihood Assessment', suggestions);
+        }
+
+        function getStructureSuggestion() {
+            const suggestions = [
+                "Lumbar intervertebral disc (L4-L5 or L5-S1)",
+                "Cervical facet joints and surrounding musculature",
+                "Rotator cuff tendon complex (supraspinatus)",
+                "Knee meniscus and associated ligaments",
+                "Hip labrum and surrounding muscle imbalances",
+                "Thoracic spine facet joints and rib articulations"
+            ];
+            insertSuggestion('structure_fault', 'Structure at Fault', suggestions);
+        }
+
+        function getSymptomSuggestion() {
+            const suggestions = [
+                "Mechanical low back pain with movement restrictions",
+                "Cervical radiculopathy with upper limb symptoms",
+                "Shoulder impingement with painful arc",
+                "Knee pain with functional limitations",
+                "Hip pain with referred symptoms to groin/thigh",
+                "Non-specific musculoskeletal pain syndrome"
+            ];
+            insertSuggestion('symptom', 'Primary Symptoms', suggestions);
+        }
+
+        function getSupportingSuggestion() {
+            const suggestions = [
+                "Patient history consistent with mechanical dysfunction",
+                "Physical examination findings support proposed diagnosis",
+                "Symptom behavior matches expected pattern",
+                "Response to movement testing confirms hypothesis",
+                "Pain location and distribution fits anatomical pattern",
+                "Functional limitations align with proposed structure"
+            ];
+            insertSuggestion('findings_support', 'Supporting Findings', suggestions);
+        }
+
+        function getRejectingSuggestion() {
+            const suggestions = [
+                "No red flags present ruling out serious pathology",
+                "Neurological examination normal excluding nerve involvement",
+                "No inflammatory markers suggesting systemic condition",
+                "Imaging findings don't correlate with clinical presentation",
+                "Symptom pattern doesn't match alternative diagnoses",
+                "Response to treatment supports primary hypothesis"
+            ];
+            insertSuggestion('findings_reject', 'Rejecting Findings', suggestions);
+        }
+
+        function getHypothesisSuggestion() {
+            const suggestions = [
+                "Yes - Clinical evidence strongly supports primary hypothesis",
+                "No - Additional assessment required to confirm diagnosis"
+            ];
+            
+            const selection = prompt(`AI Suggestion for Hypothesis Support:\n\n${suggestions.join('\n\n')}\n\nChoose Yes or No:`);
+            if (selection) {
+                const value = selection.split(' - ')[0];
+                document.getElementById('hypothesis_supported').value = value;
+            }
+        }
+
+        function insertSuggestion(fieldId, title, suggestions) {
+            const suggestionText = suggestions.join('\n• ');
+            const suggestion = prompt(`AI Suggestions for ${title}:\n\n• ${suggestionText}\n\nEnter relevant details:`);
+            
+            if (suggestion) {
+                const textarea = document.getElementById(fieldId);
+                const currentText = textarea.value;
+                if (currentText) {
+                    textarea.value = currentText + '\n\n' + suggestion;
+                } else {
+                    textarea.value = suggestion;
+                }
+            }
+        }
+    </script>
 </body>
 </html>

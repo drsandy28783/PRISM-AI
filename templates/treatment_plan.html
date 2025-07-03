@@ -3,26 +3,221 @@
 <head>
     <title>Treatment Plan - PRISM</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .ai-section {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0A6847;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .ai-button {
+            background-color: #0A6847;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .ai-button:hover {
+            background-color: #085538;
+        }
+        .ai-response {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            white-space: pre-wrap;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .field-with-ai {
+            position: relative;
+        }
+        .ai-field-button {
+            position: absolute;
+            right: 10px;
+            top: 30px;
+            background-color: #0A6847;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .ai-field-button:hover {
+            background-color: #085538;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>Treatment Plan for {{ patient_id }}</h2>
-        <form method="POST">
+        
+        <!-- AI Assistance Section -->
+        <div class="ai-section">
+            <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI Treatment Planning Assistant</h3>
+            <p style="margin-bottom: 15px; color: #555;">Get comprehensive treatment recommendations based on complete clinical assessment.</p>
+            <button type="button" class="ai-button" onclick="getTreatmentPlanInsights()">
+                Get AI Treatment Recommendations
+            </button>
+            <div id="ai-treatment-insights" class="ai-response"></div>
+        </div>
 
+        <form method="POST">
             <label for="treatment_plan">Treatment Plan:</label>
-            <textarea name="treatment_plan" id="treatment_plan" class="input-field" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea name="treatment_plan" id="treatment_plan" class="input-field" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getTreatmentSuggestions()">🤖</button>
+            </div>
 
             <label for="goal_targeted">Goal Targeted:</label>
-            <textarea name="goal_targeted" id="goal_targeted" class="input-field" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea name="goal_targeted" id="goal_targeted" class="input-field" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getGoalSuggestions()">🤖</button>
+            </div>
 
             <label for="reasoning">Reasoning:</label>
-            <textarea name="reasoning" id="reasoning" class="input-field" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea name="reasoning" id="reasoning" class="input-field" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getReasoningSuggestions()">🤖</button>
+            </div>
 
             <label for="reference">Article / Book / Literature / Reference:</label>
-            <textarea name="reference" id="reference" class="input-field" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea name="reference" id="reference" class="input-field" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getReferenceSuggestions()">🤖</button>
+            </div>
 
             <button class="button" type="submit">Save & Return to Dashboard</button>
         </form>
     </div>
+
+    <script>
+        const patientId = '{{ patient_id }}';
+
+        function getTreatmentPlanInsights() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '🤖 Analyzing...';
+            button.disabled = true;
+
+            fetch('/api/ai/treatment-plan', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    patient_id: patientId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('AI Error: ' + data.error);
+                } else {
+                    const responseDiv = document.getElementById('ai-treatment-insights');
+                    responseDiv.innerHTML = '🤖 AI Treatment Plan Recommendations:\n\n' + data.response;
+                    responseDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+            })
+            .finally(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+
+        function getTreatmentSuggestions() {
+            const suggestions = [
+                "Manual therapy techniques for joint mobilization",
+                "Progressive strengthening exercise program",
+                "Functional movement retraining",
+                "Pain management strategies and modalities",
+                "Patient education on condition and self-management",
+                "Home exercise program development",
+                "Postural correction and ergonomic advice"
+            ];
+
+            const suggestionText = suggestions.join('\n• ');
+            const suggestion = prompt(`AI Treatment Plan Suggestions:\n\n• ${suggestionText}\n\nSelect or add custom treatment approach:`);
+            
+            if (suggestion) {
+                insertIntoField('treatment_plan', suggestion);
+            }
+        }
+
+        function getGoalSuggestions() {
+            const suggestions = [
+                "Reduce pain levels to manageable limits",
+                "Improve functional range of motion",
+                "Restore normal movement patterns",
+                "Enhance strength and endurance",
+                "Return to previous activity levels",
+                "Prevent recurrence of symptoms",
+                "Improve quality of life and function"
+            ];
+
+            const suggestionText = suggestions.join('\n• ');
+            const suggestion = prompt(`AI Goal Suggestions:\n\n• ${suggestionText}\n\nSelect or add specific goals:`);
+            
+            if (suggestion) {
+                insertIntoField('goal_targeted', suggestion);
+            }
+        }
+
+        function getReasoningSuggestions() {
+            const suggestions = [
+                "Evidence-based approach targeting identified impairments",
+                "Addresses specific pathophysiological mechanisms",
+                "Aligns with patient's functional goals and expectations",
+                "Considers psychosocial factors and patient perspectives",
+                "Progressive approach following tissue healing timeline",
+                "Incorporates motor learning principles",
+                "Addresses both symptoms and underlying causes"
+            ];
+
+            const suggestionText = suggestions.join('\n• ');
+            const suggestion = prompt(`AI Clinical Reasoning Suggestions:\n\n• ${suggestionText}\n\nSelect or add reasoning:`);
+            
+            if (suggestion) {
+                insertIntoField('reasoning', suggestion);
+            }
+        }
+
+        function getReferenceSuggestions() {
+            const suggestions = [
+                "Kisner & Colby: Therapeutic Exercise - Foundations and Techniques",
+                "Maitland's Peripheral Manipulation Management",
+                "Clinical Guidelines for Physiotherapy Practice",
+                "Evidence-based Manual Therapy Techniques",
+                "Motor Control and Motor Learning Principles",
+                "Pain Science and Therapeutic Neuroscience Education",
+                "Current Research in Musculoskeletal Rehabilitation"
+            ];
+
+            const suggestionText = suggestions.join('\n• ');
+            const suggestion = prompt(`AI Reference Suggestions:\n\n• ${suggestionText}\n\nSelect or add specific references:`);
+            
+            if (suggestion) {
+                insertIntoField('reference', suggestion);
+            }
+        }
+
+        function insertIntoField(fieldId, text) {
+            const textarea = document.getElementById(fieldId);
+            const currentText = textarea.value;
+            if (currentText) {
+                textarea.value = currentText + '\n\n' + text;
+            } else {
+                textarea.value = text;
+            }
+        }
+    </script>
 </body>
 </html>

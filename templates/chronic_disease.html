@@ -3,31 +3,203 @@
 <head>
     <title>Chronic Disease Factors - PRISM</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .ai-section {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0A6847;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .ai-button {
+            background-color: #0A6847;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .ai-button:hover {
+            background-color: #085538;
+        }
+        .ai-response {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            white-space: pre-wrap;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .field-with-ai {
+            position: relative;
+        }
+        .ai-field-button {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #0A6847;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .ai-field-button:hover {
+            background-color: #085538;
+        }
+        .ai-field-button.textarea {
+            top: 30px;
+            transform: none;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>Chronic Disease Factors for {{ patient_id }}</h2>
+        
+        <!-- AI Assistance Section -->
+        <div class="ai-section">
+            <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI Chronic Factors Assistant</h3>
+            <p style="margin-bottom: 15px; color: #555;">Get intelligent analysis of factors contributing to symptom maintenance and chronicity.</p>
+            <button type="button" class="ai-button" onclick="getChronicInsights()">
+                Get AI Chronic Factors Analysis
+            </button>
+            <div id="ai-chronic-insights" class="ai-response"></div>
+        </div>
+
         <form method="POST">
             <div class="form-group">
                 <label for="cause">Cause for Maintenance of Symptoms:</label>
-                <select name="cause" id="cause" class="input-field" required>
-                    <option value="">-- Select --</option>
-                    <option>Physical/Biomechanical Issues</option>
-                    <option>Psychological Factors</option>
-                    <option>Social or Environmental Conditions</option>
-                    <option>Lifestyle / Behavioral</option>
-                    <option>Work-related</option>
-                    <option>Others</option>
-                </select>
+                <div class="field-with-ai">
+                    <select name="cause" id="cause" class="input-field" required style="padding-right: 50px;">
+                        <option value="">-- Select --</option>
+                        <option>Physical/Biomechanical Issues</option>
+                        <option>Psychological Factors</option>
+                        <option>Social or Environmental Conditions</option>
+                        <option>Lifestyle / Behavioral</option>
+                        <option>Work-related</option>
+                        <option>Others</option>
+                    </select>
+                    <button type="button" class="ai-field-button" onclick="getCauseSuggestion()">🤖</button>
+                </div>
             </div>
 
             <div class="form-group">
                 <label for="cause_detail">Specific Factors (Optional):</label>
-                <textarea name="cause_detail" id="cause_detail" class="input-field" rows="3" placeholder="Describe contributing factors (e.g. posture, stress, lack of activity)..."></textarea>
+                <div class="field-with-ai">
+                    <textarea name="cause_detail" id="cause_detail" class="input-field" rows="3" placeholder="Describe contributing factors (e.g. posture, stress, lack of activity)..." style="padding-right: 50px;"></textarea>
+                    <button type="button" class="ai-field-button textarea" onclick="getDetailSuggestion()">🤖</button>
+                </div>
             </div>
 
             <button class="button" type="submit">Save & Continue to Clinical Flags</button>
         </form>
     </div>
+
+    <script>
+        const patientId = '{{ patient_id }}';
+
+        function getChronicInsights() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '🤖 Analyzing...';
+            button.disabled = true;
+
+            // Using the chronic disease endpoint
+            fetch('/api/ai/chronic_disease', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    patient_id: patientId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('AI Error: ' + data.error);
+                } else {
+                    const responseDiv = document.getElementById('ai-chronic-insights');
+                    responseDiv.innerHTML = '🤖 AI Chronic Factors Analysis:\n\n' + data.response;
+                    responseDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+            })
+            .finally(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+
+        function getCauseSuggestion() {
+            const suggestions = [
+                "Physical/Biomechanical Issues - Poor posture, muscle imbalances, movement dysfunction",
+                "Psychological Factors - Stress, anxiety, fear avoidance, depression",
+                "Social or Environmental Conditions - Lack of support, environmental barriers",
+                "Lifestyle / Behavioral - Sedentary habits, poor sleep, inadequate nutrition",
+                "Work-related - Ergonomic issues, job stress, repetitive tasks",
+                "Others - Multiple factors or unclear contributing elements"
+            ];
+            
+            const selection = prompt(`AI Chronic Factor Suggestions:\n\n${suggestions.join('\n\n')}\n\nChoose primary factor:`);
+            if (selection) {
+                const value = selection.split(' - ')[0];
+                document.getElementById('cause').value = value;
+            }
+        }
+
+        function getDetailSuggestion() {
+            const currentCause = document.getElementById('cause').value;
+            
+            const detailSuggestions = {
+                'Physical/Biomechanical Issues': [
+                    "Poor workplace ergonomics leading to sustained postures",
+                    "Muscle weakness and imbalances affecting movement patterns",
+                    "Joint stiffness and reduced mobility from prolonged immobility"
+                ],
+                'Psychological Factors': [
+                    "High stress levels affecting pain perception and healing",
+                    "Fear of movement leading to avoidance behaviors", 
+                    "Anxiety about prognosis and future functional capacity"
+                ],
+                'Social or Environmental Conditions': [
+                    "Limited social support affecting motivation for recovery",
+                    "Environmental barriers limiting activity participation",
+                    "Cultural beliefs about pain and treatment approaches"
+                ],
+                'Lifestyle / Behavioral': [
+                    "Sedentary lifestyle contributing to physical deconditioning",
+                    "Poor sleep quality affecting recovery and pain management",
+                    "Smoking or poor nutrition impacting healing processes"
+                ],
+                'Work-related': [
+                    "High physical demands exceeding current functional capacity",
+                    "Job dissatisfaction and workplace stress",
+                    "Limited opportunities for modified duties during recovery"
+                ]
+            };
+
+            const suggestions = detailSuggestions[currentCause] || [
+                "Multiple contributing factors requiring comprehensive assessment",
+                "Complex interaction of physical and psychosocial elements",
+                "Individual factors specific to patient presentation"
+            ];
+
+            const suggestionText = suggestions.join('\n• ');
+            const suggestion = prompt(`AI Detail Suggestions for ${currentCause}:\n\n• ${suggestionText}\n\nAdd specific details:`);
+            
+            if (suggestion) {
+                document.getElementById('cause_detail').value = suggestion;
+            }
+        }
+    </script>
 </body>
 </html>

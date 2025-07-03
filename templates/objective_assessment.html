@@ -3,23 +3,164 @@
 <head>
     <title>Objective Assessment - PRISM</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .ai-section {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0A6847;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .ai-button {
+            background-color: #0A6847;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .ai-button:hover {
+            background-color: #085538;
+        }
+        .ai-response {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            white-space: pre-wrap;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .field-with-ai {
+            position: relative;
+        }
+        .ai-field-button {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #0A6847;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .ai-field-button:hover {
+            background-color: #085538;
+        }
+        .ai-field-button.textarea {
+            top: 30px;
+            transform: none;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
     <h2>Objective Assessment for {{ patient_id }}</h2>
+    
+    <!-- AI Assistance Section -->
+    <div class="ai-section">
+        <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI Objective Assessment Assistant</h3>
+        <p style="margin-bottom: 15px; color: #555;">Get intelligent recommendations for objective assessment planning based on clinical findings.</p>
+        <button type="button" class="ai-button" onclick="getObjectiveInsights()">
+            Get AI Assessment Recommendations
+        </button>
+        <div id="ai-objective-insights" class="ai-response"></div>
+    </div>
+
     <form method="POST">
         <label for="plan">Plan:</label>
-        <select name="plan" id="plan" class="input-field" required>
-            <option value="">-- Select --</option>
-            <option value="Comprehensive without modification">Comprehensive without modification</option>
-            <option value="Comprehensive with modifications">Comprehensive with modifications</option>
-        </select><br><br>
+        <div class="field-with-ai">
+            <select name="plan" id="plan" class="input-field" required style="padding-right: 50px;">
+                <option value="">-- Select --</option>
+                <option value="Comprehensive without modification">Comprehensive without modification</option>
+                <option value="Comprehensive with modifications">Comprehensive with modifications</option>
+            </select>
+            <button type="button" class="ai-field-button" onclick="getPlanSuggestion()">🤖</button>
+        </div><br><br>
 
         <label for="plan_details">Assessment Notes / Modifications:</label>
-        <textarea name="plan_details" id="plan_details" class="input-field" rows="3" placeholder="Enter observations or modifications here..."></textarea><br><br>
+        <div class="field-with-ai">
+            <textarea name="plan_details" id="plan_details" class="input-field" rows="3" placeholder="Enter observations or modifications here..." style="padding-right: 50px;"></textarea>
+            <button type="button" class="ai-field-button textarea" onclick="getDetailsSuggestion()">🤖</button>
+        </div><br><br>
 
         <button class="button" type="submit">Save & Continue to Provisional Diagnosis</button>
     </form>
 </div>
+
+<script>
+    const patientId = '{{ patient_id }}';
+
+    function getObjectiveInsights() {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '🤖 Analyzing...';
+        button.disabled = true;
+
+        // Using existing endpoint - you may want to create a specific one later
+        fetch('/api/ai/initial-plan', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                patient_id: patientId,
+                context: 'objective_assessment'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('AI Error: ' + data.error);
+            } else {
+                const responseDiv = document.getElementById('ai-objective-insights');
+                responseDiv.innerHTML = '🤖 AI Objective Assessment Recommendations:\n\n' + data.response;
+                responseDiv.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        })
+        .finally(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+    }
+
+    function getPlanSuggestion() {
+        const suggestions = [
+            "Comprehensive without modification - Full assessment safe and indicated",
+            "Comprehensive with modifications - Assessment needed with precautions"
+        ];
+        
+        const selection = prompt(`AI Plan Suggestions:\n\n${suggestions.join('\n\n')}\n\nChoose appropriate plan:`);
+        if (selection) {
+            const value = selection.split(' - ')[0];
+            document.getElementById('plan').value = value;
+        }
+    }
+
+    function getDetailsSuggestion() {
+        const suggestions = [
+            "All planned assessments completed without symptom aggravation",
+            "Modified assessment due to pain levels - avoided aggravating movements",
+            "Patient tolerated assessment well with good cooperation",
+            "Some assessments deferred due to acute symptoms",
+            "Comprehensive evaluation completed with detailed findings documented"
+        ];
+        
+        const suggestionText = suggestions.join('\n• ');
+        const suggestion = prompt(`AI Assessment Notes Suggestions:\n\n• ${suggestionText}\n\nAdd relevant notes:`);
+        
+        if (suggestion) {
+            document.getElementById('plan_details').value = suggestion;
+        }
+    }
+</script>
 </body>
 </html>

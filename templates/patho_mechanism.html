@@ -17,68 +17,294 @@
         .full-width {
             grid-column: span 2;
         }
+        .ai-section {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0A6847;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .ai-button {
+            background-color: #0A6847;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .ai-button:hover {
+            background-color: #085538;
+        }
+        .ai-response {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            white-space: pre-wrap;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .field-with-ai {
+            position: relative;
+        }
+        .ai-field-button {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #0A6847;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .ai-field-button:hover {
+            background-color: #085538;
+        }
+        .ai-field-button.textarea {
+            top: 20px;
+            transform: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>Pathophysiological Mechanism for {{ patient_id }}</h2>
+        
+        <!-- AI Assistance Section -->
+        <div class="ai-section">
+            <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI Pathophysiology Assistant</h3>
+            <p style="margin-bottom: 15px; color: #555;">Get intelligent analysis of pathophysiological mechanisms based on clinical assessment.</p>
+            <button type="button" class="ai-button" onclick="getPathoInsights()">
+                Get AI Pathophysiology Analysis
+            </button>
+            <div id="ai-patho-insights" class="ai-response"></div>
+        </div>
+
         <form method="POST">
             <div class="form-grid">
 
                 <label for="area_involved">Area Involved:</label>
-                <textarea name="area_involved" id="area_involved" rows="2"></textarea>
+                <div class="field-with-ai">
+                    <textarea name="area_involved" id="area_involved" rows="2" style="padding-right: 50px;"></textarea>
+                    <button type="button" class="ai-field-button textarea" onclick="getAreaSuggestion()">🤖</button>
+                </div>
 
                 <label for="presenting_symptom">Presenting Symptom:</label>
-                <textarea name="presenting_symptom" id="presenting_symptom" rows="2"></textarea>
+                <div class="field-with-ai">
+                    <textarea name="presenting_symptom" id="presenting_symptom" rows="2" style="padding-right: 50px;"></textarea>
+                    <button type="button" class="ai-field-button textarea" onclick="getSymptomSuggestion()">🤖</button>
+                </div>
 
                 <label for="pain_type">Pain Type:</label>
-                <select name="pain_type" id="pain_type">
-                    <option value="">Select</option>
-                    <option>Pulling</option>
-                    <option>Sharp</option>
-                    <option>Dull</option>
-                    <option>Stabbing</option>
-                    <option>Radiating</option>
-                </select>
+                <div class="field-with-ai">
+                    <select name="pain_type" id="pain_type" style="padding-right: 50px;">
+                        <option value="">Select</option>
+                        <option>Pulling</option>
+                        <option>Sharp</option>
+                        <option>Dull</option>
+                        <option>Stabbing</option>
+                        <option>Radiating</option>
+                    </select>
+                    <button type="button" class="ai-field-button" onclick="getPainTypeSuggestion()">🤖</button>
+                </div>
 
                 <label for="pain_nature">Pain Nature:</label>
-                <select name="pain_nature" id="pain_nature">
-                    <option value="">Select</option>
-                    <option>Constant/Continuous</option>
-                    <option>Intermittent</option>
-                    <option>Activity dependent</option>
-                </select>
+                <div class="field-with-ai">
+                    <select name="pain_nature" id="pain_nature" style="padding-right: 50px;">
+                        <option value="">Select</option>
+                        <option>Constant/Continuous</option>
+                        <option>Intermittent</option>
+                        <option>Activity dependent</option>
+                    </select>
+                    <button type="button" class="ai-field-button" onclick="getPainNatureSuggestion()">🤖</button>
+                </div>
 
                 <label for="pain_severity">Pain Severity / VAS:</label>
-                <input type="text" name="pain_severity" id="pain_severity">
+                <div class="field-with-ai">
+                    <input type="text" name="pain_severity" id="pain_severity" style="padding-right: 50px;">
+                    <button type="button" class="ai-field-button" onclick="getPainSeveritySuggestion()">🤖</button>
+                </div>
 
                 <label for="pain_irritability">Pain Irritability:</label>
-                <select name="pain_irritability" id="pain_irritability">
-                    <option value="">Select</option>
-                    <option>Present</option>
-                    <option>Absent</option>
-                </select>
+                <div class="field-with-ai">
+                    <select name="pain_irritability" id="pain_irritability" style="padding-right: 50px;">
+                        <option value="">Select</option>
+                        <option>Present</option>
+                        <option>Absent</option>
+                    </select>
+                    <button type="button" class="ai-field-button" onclick="getIrritabilitySuggestion()">🤖</button>
+                </div>
 
                 <label for="symptom_source">Possible Source of Symptoms:</label>
-                <select name="symptom_source" id="symptom_source">
-                    <option value="">Select</option>
-                    <option>Somatic Local</option>
-                    <option>Somatic Referred</option>
-                    <option>Neurogenic</option>
-                    <option>Visceral</option>
-                </select>
+                <div class="field-with-ai">
+                    <select name="symptom_source" id="symptom_source" style="padding-right: 50px;">
+                        <option value="">Select</option>
+                        <option>Somatic Local</option>
+                        <option>Somatic Referred</option>
+                        <option>Neurogenic</option>
+                        <option>Visceral</option>
+                    </select>
+                    <button type="button" class="ai-field-button" onclick="getSourceSuggestion()">🤖</button>
+                </div>
 
                 <label for="tissue_healing_stage">Stage of Tissue Healing:</label>
-                <select name="tissue_healing_stage" id="tissue_healing_stage">
-                    <option value="">Select</option>
-                    <option>Acute Inflammatory (0-72h)</option>
-                    <option>Subacute (4-21 days)</option>
-                    <option>Chronic (>3 weeks)</option>
-                </select>
+                <div class="field-with-ai">
+                    <select name="tissue_healing_stage" id="tissue_healing_stage" style="padding-right: 50px;">
+                        <option value="">Select</option>
+                        <option>Acute Inflammatory (0-72h)</option>
+                        <option>Subacute (4-21 days)</option>
+                        <option>Chronic (>3 weeks)</option>
+                    </select>
+                    <button type="button" class="ai-field-button" onclick="getHealingStageSuggestion()">🤖</button>
+                </div>
 
             </div>
             <button class="button" type="submit">Save & Continue</button>
         </form>
     </div>
+
+    <script>
+        const patientId = '{{ patient_id }}';
+
+        function getPathoInsights() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '🤖 Analyzing...';
+            button.disabled = true;
+
+            fetch('/api/ai/pathophysiological', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    patient_id: patientId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('AI Error: ' + data.error);
+                } else {
+                    const responseDiv = document.getElementById('ai-patho-insights');
+                    responseDiv.innerHTML = '🤖 AI Pathophysiology Analysis:\n\n' + data.response;
+                    responseDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+            })
+            .finally(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+
+        function getAreaSuggestion() {
+            const suggestions = [
+                "Cervical spine and surrounding musculature",
+                "Lumbar spine and associated structures",
+                "Shoulder joint complex and rotator cuff",
+                "Knee joint and supporting ligaments",
+                "Hip joint and surrounding muscles"
+            ];
+            insertSuggestion('area_involved', 'Area Involved', suggestions);
+        }
+
+        function getSymptomSuggestion() {
+            const suggestions = [
+                "Local pain with movement restrictions",
+                "Radiating pain with neurological symptoms",
+                "Muscle spasm and protective guarding",
+                "Joint stiffness and reduced range of motion",
+                "Functional limitations in daily activities"
+            ];
+            insertSuggestion('presenting_symptom', 'Presenting Symptoms', suggestions);
+        }
+
+        function getPainTypeSuggestion() {
+            const suggestions = [
+                "Sharp - Suggests acute injury or nerve involvement",
+                "Dull - Indicates muscle or joint issues",
+                "Stabbing - May suggest nerve entrapment",
+                "Radiating - Suggests referred or neurogenic pain",
+                "Pulling - Often muscular in origin"
+            ];
+            selectSuggestion('pain_type', 'Pain Type', suggestions);
+        }
+
+        function getPainNatureSuggestion() {
+            const suggestions = [
+                "Constant/Continuous - Suggests inflammatory process",
+                "Intermittent - May indicate mechanical dysfunction",
+                "Activity dependent - Suggests biomechanical factors"
+            ];
+            selectSuggestion('pain_nature', 'Pain Nature', suggestions);
+        }
+
+        function getPainSeveritySuggestion() {
+            const suggestion = prompt("AI Suggestion for Pain Severity:\n\n• Mild: 1-3/10\n• Moderate: 4-6/10\n• Severe: 7-10/10\n\nEnter numerical value (0-10):");
+            if (suggestion) {
+                document.getElementById('pain_severity').value = suggestion;
+            }
+        }
+
+        function getIrritabilitySuggestion() {
+            const suggestions = [
+                "Present - Pain increases easily with minimal activity",
+                "Absent - Pain doesn't worsen significantly with activity"
+            ];
+            selectSuggestion('pain_irritability', 'Pain Irritability', suggestions);
+        }
+
+        function getSourceSuggestion() {
+            const suggestions = [
+                "Somatic Local - Pain from local tissue damage",
+                "Somatic Referred - Pain referred from another structure",
+                "Neurogenic - Pain from nervous system involvement",
+                "Visceral - Pain from internal organ involvement"
+            ];
+            selectSuggestion('symptom_source', 'Symptom Source', suggestions);
+        }
+
+        function getHealingStageSuggestion() {
+            const suggestions = [
+                "Acute Inflammatory (0-72h) - Recent injury, inflammatory signs",
+                "Subacute (4-21 days) - Healing in progress, reducing inflammation",
+                "Chronic (>3 weeks) - Long-standing condition, structural changes"
+            ];
+            selectSuggestion('tissue_healing_stage', 'Healing Stage', suggestions);
+        }
+
+        function insertSuggestion(fieldId, title, suggestions) {
+            const suggestionText = suggestions.join('\n• ');
+            const suggestion = prompt(`AI Suggestions for ${title}:\n\n• ${suggestionText}\n\nEnter relevant details:`);
+            
+            if (suggestion) {
+                const textarea = document.getElementById(fieldId);
+                const currentText = textarea.value;
+                if (currentText) {
+                    textarea.value = currentText + ', ' + suggestion;
+                } else {
+                    textarea.value = suggestion;
+                }
+            }
+        }
+
+        function selectSuggestion(fieldId, title, suggestions) {
+            const suggestionText = suggestions.join('\n\n');
+            const selection = prompt(`AI Suggestions for ${title}:\n\n${suggestionText}\n\nChoose appropriate option:`);
+            
+            if (selection) {
+                const optionValue = selection.split(' - ')[0];
+                document.getElementById(fieldId).value = optionValue;
+            }
+        }
+    </script>
 </body>
 </html>

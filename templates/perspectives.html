@@ -3,85 +3,272 @@
 <head>
     <title>Patient Perspectives – PRISM</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .ai-section {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0A6847;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .ai-button {
+            background-color: #0A6847;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .ai-button:hover {
+            background-color: #085538;
+        }
+        .ai-response {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            white-space: pre-wrap;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .field-with-ai {
+            position: relative;
+        }
+        .ai-field-button {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #0A6847;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .ai-field-button:hover {
+            background-color: #085538;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
     <h2>Patient Perspectives for {{ patient_id }}</h2>
+    
+    <!-- AI Assistance Section -->
+    <div class="ai-section">
+        <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI Patient Perspectives Assistant</h3>
+        <p style="margin-bottom: 15px; color: #555;">Get intelligent analysis of patient perspectives based on clinical history.</p>
+        <button type="button" class="ai-button" onclick="getPerspectiveInsights()">
+            Get AI Perspective Analysis
+        </button>
+        <div id="ai-perspective-insights" class="ai-response"></div>
+    </div>
+
     <form method="POST" class="form-grid">
       <div class="form-group">
         <label for="knowledge">Knowledge of the Illness:</label>
-        <select name="knowledge" id="knowledge" required>
-          <option value="">Select</option>
-          <option>Excellent</option>
-          <option>Good</option>
-          <option>Fair</option>
-          <option>Poor</option>
-          <option>None</option>
-        </select>
+        <div class="field-with-ai">
+            <select name="knowledge" id="knowledge" required style="padding-right: 50px;">
+              <option value="">Select</option>
+              <option>Excellent</option>
+              <option>Good</option>
+              <option>Fair</option>
+              <option>Poor</option>
+              <option>None</option>
+            </select>
+            <button type="button" class="ai-field-button" onclick="getKnowledgeSuggestion()">🤖</button>
+        </div>
       </div>
 
       <div class="form-group">
         <label for="attribution">Attribution:</label>
-        <select name="attribution" id="attribution" required>
-          <option value="">Select</option>
-          <option>Biomedical</option>
-          <option>Psychosocial</option>
-          <option>Behavioral</option>
-          <option>Environmental</option>
-          <option>Others</option>
-        </select>
+        <div class="field-with-ai">
+            <select name="attribution" id="attribution" required style="padding-right: 50px;">
+              <option value="">Select</option>
+              <option>Biomedical</option>
+              <option>Psychosocial</option>
+              <option>Behavioral</option>
+              <option>Environmental</option>
+              <option>Others</option>
+            </select>
+            <button type="button" class="ai-field-button" onclick="getAttributionSuggestion()">🤖</button>
+        </div>
       </div>
 
       <div class="form-group">
         <label for="expectation">Expectation About Illness:</label>
-            <select name="illness_duration" id="illness_duration" required>
-
-          <option value="">Select</option>
-          <option>Short Term</option>
-          <option>Long Term</option>
-          <option>Unsure</option>
-        </select>
+        <div class="field-with-ai">
+            <select name="illness_duration" id="illness_duration" required style="padding-right: 50px;">
+              <option value="">Select</option>
+              <option>Short Term</option>
+              <option>Long Term</option>
+              <option>Unsure</option>
+            </select>
+            <button type="button" class="ai-field-button" onclick="getExpectationSuggestion()">🤖</button>
+        </div>
       </div>
 
       <div class="form-group">
         <label for="consequences_awareness">Awareness of Consequences:</label>
-        <select name="consequences_awareness" id="consequences_awareness" required>
-          <option value="">Select</option>
-          <option>Fully Aware</option>
-          <option>Partially Aware</option>
-          <option>Unaware</option>
-        </select>
+        <div class="field-with-ai">
+            <select name="consequences_awareness" id="consequences_awareness" required style="padding-right: 50px;">
+              <option value="">Select</option>
+              <option>Fully Aware</option>
+              <option>Partially Aware</option>
+              <option>Unaware</option>
+            </select>
+            <button type="button" class="ai-field-button" onclick="getAwarenessSuggestion()">🤖</button>
+        </div>
       </div>
 
       <div class="form-group">
         <label for="locus_of_control">Locus of Control:</label>
-        <select name="locus_of_control" id="locus_of_control" required>
-          <option value="">Select</option>
-          <option>Internal</option>
-          <option>External</option>
-        </select>
+        <div class="field-with-ai">
+            <select name="locus_of_control" id="locus_of_control" required style="padding-right: 50px;">
+              <option value="">Select</option>
+              <option>Internal</option>
+              <option>External</option>
+            </select>
+            <button type="button" class="ai-field-button" onclick="getLocusSuggestion()">🤖</button>
+        </div>
       </div>
 
       <div class="form-group">
         <label for="affective_aspect">Affective Aspect (Feelings Elicited):</label>
-        <select name="affective_aspect" id="affective_aspect" required>
-          <option value="">Select</option>
-          <option>Anxiety</option>
-          <option>Fear</option>
-          <option>Sadness</option>
-          <option>Anger</option>
-          <option>Frustration</option>
-          <option>Hopelessness</option>
-          <option>Acceptance</option>
-          <option>Others</option>
-        </select>
+        <div class="field-with-ai">
+            <select name="affective_aspect" id="affective_aspect" required style="padding-right: 50px;">
+              <option value="">Select</option>
+              <option>Anxiety</option>
+              <option>Fear</option>
+              <option>Sadness</option>
+              <option>Anger</option>
+              <option>Frustration</option>
+              <option>Hopelessness</option>
+              <option>Acceptance</option>
+              <option>Others</option>
+            </select>
+            <button type="button" class="ai-field-button" onclick="getAffectiveSuggestion()">🤖</button>
+        </div>
       </div>
 
       <div class="form-group full-width">
         <button class="button" type="submit">Save & Continue to Initial Plan</button>
       </div>
     </form>
-
 </div>
+
+<script>
+    const patientId = '{{ patient_id }}';
+
+    function getPerspectiveInsights() {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '🤖 Analyzing...';
+        button.disabled = true;
+
+        fetch('/api/ai/patient-perspectives', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                patient_id: patientId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('AI Error: ' + data.error);
+            } else {
+                const responseDiv = document.getElementById('ai-perspective-insights');
+                responseDiv.innerHTML = '🤖 AI Patient Perspective Analysis:\n\n' + data.response;
+                responseDiv.style.display = 'block';
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        })
+        .finally(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+    }
+
+    function getKnowledgeSuggestion() {
+        const suggestions = [
+            "Excellent - Patient demonstrates comprehensive understanding",
+            "Good - Patient has solid basic knowledge with some gaps",
+            "Fair - Patient has limited but adequate understanding",
+            "Poor - Patient has minimal knowledge about condition",
+            "None - Patient lacks understanding of their condition"
+        ];
+        showSuggestionPrompt('knowledge', 'Knowledge Level', suggestions);
+    }
+
+    function getAttributionSuggestion() {
+        const suggestions = [
+            "Biomedical - Attributes to physical/medical causes",
+            "Psychosocial - Attributes to stress/emotional factors",
+            "Behavioral - Attributes to personal actions/habits",
+            "Environmental - Attributes to external factors",
+            "Others - Mixed or unclear attribution"
+        ];
+        showSuggestionPrompt('attribution', 'Attribution', suggestions);
+    }
+
+    function getExpectationSuggestion() {
+        const suggestions = [
+            "Short Term - Expects quick recovery",
+            "Long Term - Expects prolonged recovery process",
+            "Unsure - Uncertain about recovery timeline"
+        ];
+        showSuggestionPrompt('illness_duration', 'Expectation', suggestions);
+    }
+
+    function getAwarenessSuggestion() {
+        const suggestions = [
+            "Fully Aware - Understands all implications and consequences",
+            "Partially Aware - Understands some but not all consequences",
+            "Unaware - Limited understanding of potential consequences"
+        ];
+        showSuggestionPrompt('consequences_awareness', 'Awareness', suggestions);
+    }
+
+    function getLocusSuggestion() {
+        const suggestions = [
+            "Internal - Believes they can control their recovery",
+            "External - Believes recovery depends on external factors"
+        ];
+        showSuggestionPrompt('locus_of_control', 'Locus of Control', suggestions);
+    }
+
+    function getAffectiveSuggestion() {
+        const suggestions = [
+            "Anxiety - Patient shows signs of worry/nervousness",
+            "Fear - Patient expresses fear about condition/treatment",
+            "Sadness - Patient appears dejected or depressed",
+            "Anger - Patient shows frustration or irritation",
+            "Frustration - Patient is impatient with progress",
+            "Hopelessness - Patient feels pessimistic about recovery",
+            "Acceptance - Patient has positive attitude toward condition"
+        ];
+        showSuggestionPrompt('affective_aspect', 'Affective Aspect', suggestions);
+    }
+
+    function showSuggestionPrompt(fieldId, title, suggestions) {
+        const suggestionText = suggestions.join('\n\n');
+        const selection = prompt(`AI Suggestions for ${title}:\n\n${suggestionText}\n\nChoose appropriate option:`);
+        
+        if (selection) {
+            // Extract the option value (before the dash)
+            const optionValue = selection.split(' - ')[0];
+            document.getElementById(fieldId).value = optionValue;
+        }
+    }
+</script>
 </body>
 </html>

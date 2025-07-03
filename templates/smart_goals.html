@@ -3,26 +3,214 @@
 <head>
     <title>SMART Goals - PRISM</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .ai-section {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0A6847;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .ai-button {
+            background-color: #0A6847;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .ai-button:hover {
+            background-color: #085538;
+        }
+        .ai-response {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            white-space: pre-wrap;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .field-with-ai {
+            position: relative;
+        }
+        .ai-field-button {
+            position: absolute;
+            right: 10px;
+            top: 30px;
+            background-color: #0A6847;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .ai-field-button:hover {
+            background-color: #085538;
+        }
+        .smart-info {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>SMART Goals for {{ patient_id }}</h2>
+        
+        <!-- SMART Goals Information -->
+        <div class="smart-info">
+            <h3 style="color: #28a745; margin-bottom: 10px;">📋 SMART Goals Framework</h3>
+            <p style="margin: 0; color: #555;">
+                <strong>S</strong>pecific • <strong>M</strong>easurable • <strong>A</strong>chievable • <strong>R</strong>elevant • <strong>T</strong>ime-bound
+            </p>
+        </div>
+
+        <!-- AI Assistance Section -->
+        <div class="ai-section">
+            <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI SMART Goals Assistant</h3>
+            <p style="margin-bottom: 15px; color: #555;">Get intelligent goal setting recommendations based on comprehensive clinical assessment.</p>
+            <button type="button" class="ai-button" onclick="getGoalsInsights()">
+                Get AI SMART Goals Recommendations
+            </button>
+            <div id="ai-goals-insights" class="ai-response"></div>
+        </div>
+
         <form method="POST">
 
             <label for="patient_goal">Goals (Patient-Centric):</label>
-            <textarea name="patient_goal" id="patient_goal" class="input-field" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea name="patient_goal" id="patient_goal" class="input-field" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getPatientGoalSuggestion()">🤖</button>
+            </div>
 
             <label for="baseline_status">Baseline Status:</label>
-            <textarea name="baseline_status" id="baseline_status" class="input-field" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea name="baseline_status" id="baseline_status" class="input-field" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getBaselineSuggestion()">🤖</button>
+            </div>
 
             <label for="measurable_outcome">Measurable Outcomes Expected:</label>
-            <textarea name="measurable_outcome" id="measurable_outcome" class="input-field" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea name="measurable_outcome" id="measurable_outcome" class="input-field" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getMeasurableSuggestion()">🤖</button>
+            </div>
 
             <label for="time_duration">Time Duration:</label>
-            <textarea name="time_duration" id="time_duration" class="input-field" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea name="time_duration" id="time_duration" class="input-field" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getTimeSuggestion()">🤖</button>
+            </div>
 
             <button class="button" type="submit">Save & Continue to Treatment Plan</button>
         </form>
     </div>
+
+    <script>
+        const patientId = '{{ patient_id }}';
+
+        function getGoalsInsights() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '🤖 Analyzing...';
+            button.disabled = true;
+
+            fetch('/api/ai/smart-goals', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    patient_id: patientId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('AI Error: ' + data.error);
+                } else {
+                    const responseDiv = document.getElementById('ai-goals-insights');
+                    responseDiv.innerHTML = '🤖 AI SMART Goals Recommendations:\n\n' + data.response;
+                    responseDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+            })
+            .finally(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+
+        function getPatientGoalSuggestion() {
+            const suggestions = [
+                "Return to pain-free daily activities within functional limitations",
+                "Improve ability to perform work-related tasks without restrictions",
+                "Regain confidence in movement and physical activity participation",
+                "Achieve independent pain management and self-care strategies",
+                "Return to recreational activities and sports at previous level",
+                "Improve sleep quality and overall quality of life"
+            ];
+            insertSuggestion('patient_goal', 'Patient-Centric Goals', suggestions);
+        }
+
+        function getBaselineSuggestion() {
+            const suggestions = [
+                "Current pain level 7/10 with significant functional limitations",
+                "Unable to perform work duties due to movement restrictions",
+                "Difficulty with basic ADLs including lifting and bending",
+                "Sleep disturbance due to pain with frequent awakenings",
+                "Reduced walking tolerance to 10-15 minutes before symptoms",
+                "Avoiding physical activities due to fear of symptom aggravation"
+            ];
+            insertSuggestion('baseline_status', 'Baseline Assessment', suggestions);
+        }
+
+        function getMeasurableSuggestion() {
+            const suggestions = [
+                "Reduce pain intensity from 7/10 to 3/10 or less",
+                "Increase walking tolerance from 15 minutes to 45 minutes",
+                "Improve functional capacity to lift 10kg without symptoms",
+                "Return to full work duties without pain-related restrictions",
+                "Achieve 8+ hours uninterrupted sleep per night",
+                "Complete home exercise program 5 days per week consistently"
+            ];
+            insertSuggestion('measurable_outcome', 'Measurable Outcomes', suggestions);
+        }
+
+        function getTimeSuggestion() {
+            const suggestions = [
+                "Short-term goals: 2-4 weeks for initial improvement",
+                "Medium-term goals: 6-8 weeks for significant progress",
+                "Long-term goals: 12-16 weeks for full functional recovery",
+                "Acute phase: 1-2 weeks for pain reduction",
+                "Rehabilitation phase: 4-6 weeks for strength and function",
+                "Maintenance phase: Ongoing for prevention and wellness"
+            ];
+            insertSuggestion('time_duration', 'Timeline Framework', suggestions);
+        }
+
+        function insertSuggestion(fieldId, title, suggestions) {
+            const suggestionText = suggestions.join('\n• ');
+            const suggestion = prompt(`AI Suggestions for ${title}:\n\n• ${suggestionText}\n\nEnter relevant SMART goal components:`);
+            
+            if (suggestion) {
+                const textarea = document.getElementById(fieldId);
+                const currentText = textarea.value;
+                if (currentText) {
+                    textarea.value = currentText + '\n\n' + suggestion;
+                } else {
+                    textarea.value = suggestion;
+                }
+            }
+        }
+    </script>
 </body>
 </html>

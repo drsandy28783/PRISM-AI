@@ -6,6 +6,26 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from firebase_init import firebase_admin  # uses your existing setup
 from firebase_admin import firestore
 db = firestore.client()
+import anthropic
+
+DEBUG_AI = True  # Set to False in production
+client = anthropic.Anthropic(api_key=os.getenv("CLAUDE_API_KEY"))
+
+def call_claude(prompt):
+    """Calls Claude AI with the given prompt and returns the response."""
+    try:
+        response = client.messages.create(
+            model="claude-3-sonnet-20240229",
+            max_tokens=1000,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response.content[0].text
+    except Exception as e:
+        if DEBUG_AI:
+            return f"AI Error: {str(e)}"
+        else:
+            return "AI service is temporarily unavailable. Please try again later."
+
 
 
 def log_action(user_id, action, details=None):
@@ -1032,6 +1052,825 @@ def edit_patient(patient_id):
 
     return render_template('edit_patient.html', patient=patient)
 
+# REPLACE your AI endpoints with these enhanced versions that collect cumulative data
+
+def get_cumulative_patient_data(patient_id):
+    """Helper function to collect ALL data from previous workflow steps"""
+    data = {}
+    
+    # Basic patient info
+    patients = db.collection('patients').where('patient_id', '==', patient_id).stream()
+    patient_doc = next(patients, None)
+    if patient_doc:
+        data['patient'] = patient_doc.to_dict()
+    
+    # Collect data from each workflow step
+    collections = [
+        'subjective_examination',
+        'patient_perspectives', 
+        'initial_plan',
+        'patho_mechanism',
+        'chronic_diseases',
+        'clinical_flags',
+        'objective_assessment',
+        'provisional_diagnosis',
+        'smart_goals',
+        'treatment_plan'
+    ]
+    
+    for collection in collections:
+        docs = db.collection(collection).where('patient_id', '==', patient_id).stream()
+        for doc in docs:
+            data[collection] = doc.to_dict()
+            break  # Get first/latest entry
+    
+    return data
+
+# ENHANCED AI ENDPOINTS - Replace your existing ones with these:
+
+@app.route("/api/ai/subjective-exam", methods=["POST"])
+@login_required()
+def ai_subjective_exam():
+    try:
+        data = request.get_json()
+        patient_id = data.get("patient_id")
+        
+        # Get ALL cumulative data
+        all_data = get_cumulative_patient_data(patient_id)
+        
+        if not all_data.get('patient'):
+            return jsonify({"error": "Patient not found"}), 404
+
+        patient = all_data['patient']
+        
+        prompt = f"""
+You are assisting with ICF framework subjective examination.
+
+Patient Information:
+- Age/Sex: {patient.get('age_sex', '')}
+- Present History: {patient.get('present_history', '')}
+- Past History: {patient.get('past_history', '')}
+
+Based on this clinical information, suggest entries for these 6 ICF categories:
+1. Impairment of body structure
+2. Impairment of body function  
+3. Activity Limitation - Performance
+4. Activity Limitation - Capacity
+5. Contextual Factors - Environmental
+6. Contextual Factors - Personal
+
+Provide single-line clinical statements for each section.
+"""
+        ai_response = call_claude(prompt)
+        return jsonify({"response": ai_response})
+    except Exception as e:
+        return jsonify({"error": "AI analysis failed"}), 500
+
+@app.route("/api/ai/patient-perspectives", methods=["POST"])
+@login_required()
+def ai_patient_perspectives():
+    try:
+        data = request.get_json()
+        patient_id = data.get("patient_id")
+        
+        # Get cumulative data including subjective examination
+        all_data = get_cumulative_patient_data(patient_id)
+        
+        if not all_data.get('patient'):
+            return jsonify({"error": "Patient not found"}), 404
+
+        patient = all_data['patient']
+        subjective = all_data.get('subjective_examination', {})
+        
+        prompt = f"""
+Based on patient and subjective examination data, provide clinical suggestions for Patient Perspectives:
+
+Patient Information:
+- Present History: {patient.get('present_history', '')}
+- Past History: {patient.get('past_history', '')}
+
+Subjective Examination:
+- Body Structure Issues: {subjective.get('body_structure', '')}
+- Body Function Issues: {subjective.get('body_function', '')}
+- Activity Performance: {subjective.get('activity_performance', '')}
+- Activity Capacity: {subjective.get('activity_capacity', '')}
+
+Suggest for these Patient Perspective areas:
+1. Knowledge of Illness
+2. Illness Attribution
+3. Expectation  
+4. Awareness of Control
+5. Locus of Control
+6. Affective Aspect
+
+Write each as a one-line clinical interpretation.
+"""
+        ai_response = call_claude(prompt)
+        return jsonify({"response": ai_response})
+    except Exception as e:
+        return jsonify({"error": "AI analysis failed"}), 500
+
+@app.route("/api/ai/initial-plan", methods=["POST"])
+@login_required()
+def ai_initial_plan():
+    try:
+        data = request.get_json()
+        patient_id = data.get("patient_id")
+        
+        # Get cumulative data from patient + subjective + perspectives
+        all_data = get_cumulative_patient_data(patient_id)
+        
+        if not all_data.get('patient'):
+            return jsonify({"error": "Patient not found"}), 404
+
+        patient = all_data['patient']
+        subjective = all_data.get('subjective_examination', {})
+        perspectives = all_data.get('patient_perspectives', {})
+        
+        prompt = f"""
+Determine appropriate initial assessment plan based on cumulative clinical data:
+
+Patient History:
+- Present History: {patient.get('present_history', '')}
+- Past History: {patient.get('past_history', '')}
+
+Subjective Findings:
+- Body Structure: {subjective.get('body_structure', '')}
+- Body Function: {subjective.get('body_function', '')}
+- Activity Limitations: {subjective.get('activity_performance', '')}
+
+Patient Perspectives:
+- Knowledge of Illness: {perspectives.get('knowledge', '')}
+- Illness Attribution: {perspectives.get('attribution', '')}
+- Locus of Control: {perspectives.get('locus_of_control', '')}
+
+Based on this information, suggest:
+1. Assessment priorities (Mandatory/Contraindicated/Precaution)
+2. Movement testing recommendations (Active/Passive/Resisted)
+3. Special considerations and precautions
+4. Patient-specific modifications needed
+
+Provide responses as concise bullet points.
+"""
+        ai_response = call_claude(prompt)
+        return jsonify({"response": ai_response})
+    except Exception as e:
+        return jsonify({"error": "AI analysis failed"}), 500
+
+@app.route("/api/ai/pathophysiological", methods=["POST"])
+@login_required()
+def ai_pathophysiological():
+    try:
+        data = request.get_json()
+        patient_id = data.get("patient_id")
+        
+        # Get cumulative data from all previous steps
+        all_data = get_cumulative_patient_data(patient_id)
+        
+        if not all_data.get('patient'):
+            return jsonify({"error": "Patient not found"}), 404
+
+        patient = all_data['patient']
+        subjective = all_data.get('subjective_examination', {})
+        perspectives = all_data.get('patient_perspectives', {})
+        initial_plan = all_data.get('initial_plan', {})
+        
+        prompt = f"""
+Generate pathophysiological mechanism hypothesis based on comprehensive clinical data:
+
+Patient History:
+- Present History: {patient.get('present_history', '')}
+- Past History: {patient.get('past_history', '')}
+
+Clinical Findings:
+- Body Structure Issues: {subjective.get('body_structure', '')}
+- Body Function Issues: {subjective.get('body_function', '')}
+- Activity Limitations: {subjective.get('activity_performance', '')}
+
+Assessment Plan:
+- Movement Testing: {initial_plan.get('active_movements', '')}
+- Special Tests: {initial_plan.get('special_tests', '')}
+
+Patient Factors:
+- Illness Attribution: {perspectives.get('attribution', '')}
+- Affective Aspects: {perspectives.get('affective_aspect', '')}
+
+Based on this comprehensive data, provide:
+1. Most likely pathophysiological hypothesis
+2. Clinical reasoning supporting this hypothesis  
+3. Alternative mechanisms to consider
+4. Recommendations for further assessment
+
+Keep clinical and evidence-based.
+"""
+        ai_response = call_claude(prompt)
+        return jsonify({"response": ai_response})
+    except Exception as e:
+        return jsonify({"error": "AI analysis failed"}), 500
+
+@app.route("/api/ai/clinical-flags", methods=["POST"])
+@login_required()
+def ai_clinical_flags():
+    try:
+        data = request.get_json()
+        patient_id = data.get("patient_id")
+        
+        # Get comprehensive data from all previous steps
+        all_data = get_cumulative_patient_data(patient_id)
+        
+        if not all_data.get('patient'):
+            return jsonify({"error": "Patient not found"}), 404
+
+        patient = all_data['patient']
+        subjective = all_data.get('subjective_examination', {})
+        perspectives = all_data.get('patient_perspectives', {})
+        patho = all_data.get('patho_mechanism', {})
+        
+        prompt = f"""
+Identify psychosocial and clinical flags based on comprehensive patient data:
+
+Patient History:
+- Present History: {patient.get('present_history', '')}
+- Past History: {patient.get('past_history', '')}
+
+Clinical Presentation:
+- Body Function Issues: {subjective.get('body_function', '')}
+- Activity Limitations: {subjective.get('activity_performance', '')}
+- Pain Characteristics: {patho.get('pain_type', '')} - {patho.get('pain_nature', '')}
+- Pain Severity: {patho.get('pain_severity', '')}
+
+Psychosocial Factors:
+- Patient Knowledge: {perspectives.get('knowledge', '')}
+- Illness Attribution: {perspectives.get('attribution', '')}
+- Locus of Control: {perspectives.get('locus_of_control', '')}
+- Affective Aspects: {perspectives.get('affective_aspect', '')}
+
+Environmental Factors:
+- Environmental Context: {subjective.get('contextual_environmental', '')}
+- Personal Context: {subjective.get('contextual_personal', '')}
+
+Based on this data, identify relevant flags:
+- 🔴 Red Flags (Serious pathology indicators)
+- 🟠 Orange Flags (Psychiatric/mental health concerns)
+- 🟡 Yellow Flags (Psychosocial risk factors)
+- ⚫ Black Flags (Occupational/compensation issues)
+- 🔵 Blue Flags (Workplace/social environment factors)
+
+Provide specific reasoning for each flag based on the clinical data.
+"""
+        ai_response = call_claude(prompt)
+        return jsonify({"response": ai_response})
+    except Exception as e:
+        return jsonify({"error": "AI analysis failed"}), 500
+
+@app.route("/api/ai/provisional-diagnosis", methods=["POST"])
+@login_required()
+def ai_provisional_diagnosis():
+    try:
+        data = request.get_json()
+        patient_id = data.get("patient_id")
+        
+        # Get ALL previous clinical data
+        all_data = get_cumulative_patient_data(patient_id)
+        
+        if not all_data.get('patient'):
+            return jsonify({"error": "Patient not found"}), 404
+
+        # Extract all relevant data
+        patient = all_data['patient']
+        subjective = all_data.get('subjective_examination', {})
+        perspectives = all_data.get('patient_perspectives', {})
+        initial_plan = all_data.get('initial_plan', {})
+        patho = all_data.get('patho_mechanism', {})
+        chronic = all_data.get('chronic_diseases', {})
+        flags = all_data.get('clinical_flags', {})
+        objective = all_data.get('objective_assessment', {})
+        
+        prompt = f"""
+Formulate provisional diagnosis based on comprehensive clinical reasoning:
+
+SUBJECTIVE DATA:
+- Present History: {patient.get('present_history', '')}
+- Past History: {patient.get('past_history', '')}
+- Body Structure: {subjective.get('body_structure', '')}
+- Body Function: {subjective.get('body_function', '')}
+- Activity Performance: {subjective.get('activity_performance', '')}
+
+PATHOPHYSIOLOGY:
+- Area Involved: {patho.get('area_involved', '')}
+- Presenting Symptoms: {patho.get('presenting_symptom', '')}
+- Pain Type: {patho.get('pain_type', '')}
+- Pain Nature: {patho.get('pain_nature', '')}
+- Pain Severity: {patho.get('pain_severity', '')}
+- Tissue Healing Stage: {patho.get('tissue_healing_stage', '')}
+
+PSYCHOSOCIAL FACTORS:
+- Clinical Flags: Red: {flags.get('red_flag', '')}, Yellow: {flags.get('yellow_flag', '')}
+- Patient Attribution: {perspectives.get('attribution', '')}
+
+OBJECTIVE FINDINGS:
+- Assessment Plan: {objective.get('plan', '')}
+- Plan Details: {objective.get('plan_details', '')}
+
+CHRONIC FACTORS:
+- Contributing Causes: {chronic.get('cause', '')}
+
+Based on this comprehensive clinical picture, provide:
+1. Most likely provisional diagnosis with confidence level
+2. Primary structure(s) at fault
+3. Key symptoms supporting the diagnosis
+4. Clinical findings that support this diagnosis
+5. Findings that might contradict this diagnosis  
+6. Overall assessment of whether hypothesis is supported
+
+Format as structured clinical reasoning.
+"""
+        ai_response = call_claude(prompt)
+        return jsonify({"response": ai_response})
+    except Exception as e:
+        return jsonify({"error": "AI analysis failed"}), 500
+
+@app.route("/api/ai/smart-goals", methods=["POST"])
+@login_required()
+def ai_smart_goals():
+    try:
+        data = request.get_json()
+        patient_id = data.get("patient_id")
+        
+        # Get comprehensive clinical data for goal setting
+        all_data = get_cumulative_patient_data(patient_id)
+        
+        if not all_data.get('patient'):
+            return jsonify({"error": "Patient not found"}), 404
+
+        patient = all_data['patient']
+        subjective = all_data.get('subjective_examination', {})
+        perspectives = all_data.get('patient_perspectives', {})
+        diagnosis = all_data.get('provisional_diagnosis', {})
+        patho = all_data.get('patho_mechanism', {})
+        
+        prompt = f"""
+Develop SMART Goals based on comprehensive clinical assessment:
+
+PATIENT PRESENTATION:
+- Age/Sex: {patient.get('age_sex', '')}
+- Present History: {patient.get('present_history', '')}
+
+ACTIVITY LIMITATIONS:
+- Performance Issues: {subjective.get('activity_performance', '')}
+- Capacity Issues: {subjective.get('activity_capacity', '')}
+
+PATIENT EXPECTATIONS:
+- Patient Knowledge: {perspectives.get('knowledge', '')}
+- Expectations: {perspectives.get('consequences_awareness', '')}
+- Locus of Control: {perspectives.get('locus_of_control', '')}
+
+CLINICAL DIAGNOSIS:
+- Provisional Diagnosis: {diagnosis.get('structure_fault', '')} - {diagnosis.get('symptom', '')}
+- Pain Severity: {patho.get('pain_severity', '')}
+- Tissue Healing Stage: {patho.get('tissue_healing_stage', '')}
+
+CONTEXTUAL FACTORS:
+- Environmental: {subjective.get('contextual_environmental', '')}
+- Personal: {subjective.get('contextual_personal', '')}
+
+Based on this comprehensive assessment, develop SMART Goals:
+
+1. SPECIFIC patient-centered goals addressing main functional limitations
+2. MEASURABLE outcomes that can be objectively assessed
+3. ACHIEVABLE goals considering patient factors and healing timeline
+4. RELEVANT goals aligned with patient priorities and expectations
+5. TIME-BOUND goals with realistic timeframes based on condition
+
+Also suggest:
+- Baseline status measurements to track from
+- Key outcome measures to monitor progress
+- Appropriate timeframes for goal achievement
+
+Format as practical, patient-centered SMART goals.
+"""
+        ai_response = call_claude(prompt)
+        return jsonify({"response": ai_response})
+    except Exception as e:
+        return jsonify({"error": "AI analysis failed"}), 500
+
+@app.route("/api/ai/treatment-plan", methods=["POST"])
+@login_required()
+def ai_treatment_plan():
+    try:
+        data = request.get_json()
+        patient_id = data.get("patient_id")
+        
+        # Get ALL clinical data for comprehensive treatment planning
+        all_data = get_cumulative_patient_data(patient_id)
+        
+        if not all_data.get('patient'):
+            return jsonify({"error": "Patient not found"}), 404
+
+        # Extract comprehensive clinical picture
+        patient = all_data['patient']
+        subjective = all_data.get('subjective_examination', {})
+        perspectives = all_data.get('patient_perspectives', {})
+        initial_plan = all_data.get('initial_plan', {})
+        patho = all_data.get('patho_mechanism', {})
+        chronic = all_data.get('chronic_diseases', {})
+        flags = all_data.get('clinical_flags', {})
+        objective = all_data.get('objective_assessment', {})
+        diagnosis = all_data.get('provisional_diagnosis', {})
+        goals = all_data.get('smart_goals', {})
+        
+        prompt = f"""
+Develop comprehensive physiotherapy treatment plan based on complete clinical assessment:
+
+CLINICAL DIAGNOSIS:
+- Provisional Diagnosis: {diagnosis.get('structure_fault', '')} 
+- Symptoms: {diagnosis.get('symptom', '')}
+- Likelihood: {diagnosis.get('likelihood', '')}
+
+PATHOPHYSIOLOGY:
+- Area Involved: {patho.get('area_involved', '')}
+- Pain Type/Nature: {patho.get('pain_type', '')} / {patho.get('pain_nature', '')}
+- Pain Severity: {patho.get('pain_severity', '')}
+- Tissue Healing Stage: {patho.get('tissue_healing_stage', '')}
+
+FUNCTIONAL LIMITATIONS:
+- Body Function Issues: {subjective.get('body_function', '')}
+- Activity Performance: {subjective.get('activity_performance', '')}
+- Activity Capacity: {subjective.get('activity_capacity', '')}
+
+PATIENT FACTORS:
+- Patient Goals: {goals.get('patient_goal', '')}
+- Baseline Status: {goals.get('baseline_status', '')}
+- Illness Attribution: {perspectives.get('attribution', '')}
+- Locus of Control: {perspectives.get('locus_of_control', '')}
+
+PSYCHOSOCIAL CONSIDERATIONS:
+- Yellow Flags: {flags.get('yellow_flag', '')}
+- Blue Flags: {flags.get('blue_flag', '')}
+- Affective Aspects: {perspectives.get('affective_aspect', '')}
+
+CHRONIC FACTORS:
+- Contributing Causes: {chronic.get('cause', '')}
+
+OBJECTIVE FINDINGS:
+- Assessment Results: {objective.get('plan_details', '')}
+
+Based on this comprehensive clinical picture, develop:
+
+1. TREATMENT PLAN:
+   - Phase-based approach aligned with tissue healing
+   - Specific interventions targeting identified impairments
+   - Manual therapy techniques if indicated
+   - Exercise prescription addressing functional goals
+   - Pain management strategies
+   - Patient education components
+
+2. GOALS TARGETED:
+   - How treatment addresses specific SMART goals
+   - Expected functional outcomes
+   - Timeline for goal achievement
+
+3. CLINICAL REASONING:
+   - Evidence-based rationale for chosen interventions
+   - How treatment addresses pathophysiology
+   - Consideration of psychosocial factors
+   - Modification strategies for patient factors
+
+4. REFERENCES:
+   - Current evidence supporting treatment approach
+   - Clinical guidelines relevant to condition
+   - Key research informing intervention choices
+
+Format as a structured, evidence-based treatment plan ready for clinical implementation.
+"""
+        ai_response = call_claude(prompt)
+        return jsonify({"response": ai_response})
+    except Exception as e:
+        return jsonify({"error": "AI analysis failed"}), 500
+
+# ADD THESE FOLLOW-UP AI ENDPOINTS TO THE END OF YOUR APP.PY
+# (After your clinical workflow AI endpoints, before if __name__ == '__main__':)
+
+@app.route("/api/ai/followup-recommendations", methods=["POST"])
+@login_required()
+def ai_followup_recommendations():
+    """AI recommendations for follow-up session based on patient history and previous sessions"""
+    try:
+        data = request.get_json()
+        patient_id = data.get("patient_id")
+        session_number = data.get("session_number", "")
+        
+        if not patient_id:
+            return jsonify({"error": "Patient ID required"}), 400
+
+        # Get comprehensive patient data
+        all_data = get_cumulative_patient_data(patient_id)
+        
+        if not all_data.get('patient'):
+            return jsonify({"error": "Patient not found"}), 404
+
+        # Get existing follow-ups to analyze progress
+        followups = db.collection('follow_ups') \
+                      .where('patient_id', '==', patient_id) \
+                      .order_by('session_date', direction=firestore.Query.DESCENDING) \
+                      .stream()
+        
+        followup_list = [f.to_dict() for f in followups]
+
+        # Extract key data for AI analysis
+        patient = all_data['patient']
+        treatment_plan = all_data.get('treatment_plan', {})
+        goals = all_data.get('smart_goals', {})
+        diagnosis = all_data.get('provisional_diagnosis', {})
+        
+        # Build follow-up history for context
+        previous_sessions = []
+        if followup_list:
+            for i, followup in enumerate(followup_list[:5]):  # Last 5 sessions
+                session_info = f"Session {followup.get('session_number', '')}: Grade '{followup.get('grade', '')}', Perception '{followup.get('belief_treatment', '')}', Plan: {followup.get('treatment_plan', '')[:100]}..."
+                previous_sessions.append(session_info)
+
+        prompt = f"""
+You are assisting a physiotherapist with follow-up session planning for patient {patient_id}.
+
+PATIENT OVERVIEW:
+- Demographics: {patient.get('age_sex', '')}
+- Present History: {patient.get('present_history', '')}
+- Upcoming Session: {session_number}
+
+TREATMENT CONTEXT:
+- Provisional Diagnosis: {diagnosis.get('structure_fault', '')} - {diagnosis.get('symptom', '')}
+- Treatment Goals: {goals.get('patient_goal', '')}
+- Current Treatment Plan: {treatment_plan.get('treatment_plan', '')}
+- Goal Timeline: {goals.get('time_duration', '')}
+
+PREVIOUS SESSION HISTORY:
+{chr(10).join(previous_sessions) if previous_sessions else 'This is the first follow-up session'}
+
+Based on this clinical information, provide recommendations for this follow-up session:
+
+1. GRADE OF ACHIEVEMENT GUIDANCE:
+   - Expected grade range for this session (Goal Achieved, Partially Achieved, Not Achieved)
+   - Factors that might influence achievement level
+   - Progress indicators to assess
+
+2. PERCEPTION OF TREATMENT ASSESSMENT:
+   - Expected patient perception (Very Effective, Effective, Moderately Effective, Not Effective)
+   - Key questions to ask about treatment effectiveness
+   - Signs of positive/negative treatment response
+
+3. FEEDBACK COLLECTION:
+   - Important feedback areas to explore
+   - Patient-reported outcome measures to consider
+   - Functional improvements to assess
+
+4. TREATMENT PLAN MODIFICATIONS:
+   - Suggested adjustments based on expected progress
+   - Exercise progression recommendations
+   - New interventions to consider
+   - Discharge planning considerations if appropriate
+
+5. SESSION FOCUS AREAS:
+   - Priority areas for this session
+   - Assessment techniques to use
+   - Patient education points
+   - Home program updates
+
+Keep recommendations practical and specific to physiotherapy follow-up sessions.
+"""
+        
+        ai_response = call_claude(prompt)
+        
+        log_action(
+            user_id=session['user_id'],
+            action="AI Follow-up Recommendations",
+            details=f"Generated AI recommendations for patient {patient_id} session {session_number}"
+        )
+        
+        return jsonify({"response": ai_response})
+        
+    except Exception as e:
+        print(f"AI follow-up recommendations error: {str(e)}")
+        return jsonify({"error": "AI recommendations failed"}), 500
+
+@app.route("/api/ai/followup-progress-analysis", methods=["POST"])
+@login_required()
+def ai_followup_progress_analysis():
+    """AI analysis of patient progress based on all follow-up sessions"""
+    try:
+        data = request.get_json()
+        patient_id = data.get("patient_id")
+        
+        if not patient_id:
+            return jsonify({"error": "Patient ID required"}), 400
+
+        # Get comprehensive patient data
+        all_data = get_cumulative_patient_data(patient_id)
+        
+        if not all_data.get('patient'):
+            return jsonify({"error": "Patient not found"}), 404
+
+        # Get ALL follow-up sessions for progress analysis
+        followups = db.collection('follow_ups') \
+                      .where('patient_id', '==', patient_id) \
+                      .order_by('session_date', direction=firestore.Query.ASCENDING) \
+                      .stream()
+        
+        followup_list = [f.to_dict() for f in followups]
+
+        if not followup_list:
+            return jsonify({"response": "No follow-up sessions recorded yet. Complete some sessions first to get progress analysis."})
+
+        # Extract treatment data
+        patient = all_data['patient']
+        goals = all_data.get('smart_goals', {})
+        diagnosis = all_data.get('provisional_diagnosis', {})
+        treatment_plan = all_data.get('treatment_plan', {})
+        
+        # Analyze progress trends
+        grade_progression = []
+        perception_progression = []
+        for followup in followup_list:
+            grade_progression.append(f"Session {followup.get('session_number', '')}: {followup.get('grade', '')}")
+            perception_progression.append(f"Session {followup.get('session_number', '')}: {followup.get('belief_treatment', '')}")
+
+        prompt = f"""
+Analyze the physiotherapy treatment progress for patient {patient_id}.
+
+INITIAL PRESENTATION:
+- Diagnosis: {diagnosis.get('structure_fault', '')} - {diagnosis.get('symptom', '')}
+- Treatment Goals: {goals.get('patient_goal', '')}
+- Expected Timeline: {goals.get('time_duration', '')}
+- Baseline Status: {goals.get('baseline_status', '')}
+
+TREATMENT APPROACH:
+- Treatment Plan: {treatment_plan.get('treatment_plan', '')}
+- Goals Targeted: {treatment_plan.get('goal_targeted', '')}
+
+PROGRESS DATA ({len(followup_list)} sessions completed):
+
+Grade of Achievement Progression:
+{chr(10).join(grade_progression)}
+
+Patient Perception Progression:
+{chr(10).join(perception_progression)}
+
+Treatment Plans by Session:
+{chr(10).join([f"Session {f.get('session_number', '')}: {f.get('treatment_plan', '')}" for f in followup_list])}
+
+Patient Feedback:
+{chr(10).join([f"Session {f.get('session_number', '')}: {f.get('belief_feedback', '')}" for f in followup_list if f.get('belief_feedback')])}
+
+Based on this comprehensive progress data, provide:
+
+1. OVERALL PROGRESS ASSESSMENT:
+   - Treatment effectiveness evaluation
+   - Progress trend analysis (improving/plateau/declining)
+   - Comparison with expected timeline
+
+2. GRADE ACHIEVEMENT ANALYSIS:
+   - Pattern of goal achievement over time
+   - Factors contributing to success/challenges
+   - Expected vs actual progress
+
+3. PATIENT PERCEPTION TRENDS:
+   - Patient satisfaction with treatment
+   - Changes in treatment perception over time
+   - Correlation between perception and objective progress
+
+4. TREATMENT RESPONSE ANALYSIS:
+   - Most effective interventions identified
+   - Areas needing treatment modification
+   - Patient engagement and compliance indicators
+
+5. FUTURE RECOMMENDATIONS:
+   - Next phase treatment suggestions
+   - Goal modifications if needed
+   - Discharge planning timeline
+   - Long-term management considerations
+
+6. OUTCOME PREDICTION:
+   - Expected final outcomes based on current progress
+   - Factors that may influence future success
+   - Risk factors for treatment plateau or regression
+
+Provide specific, evidence-based analysis suitable for clinical decision-making.
+"""
+        
+        ai_response = call_claude(prompt)
+        
+        log_action(
+            user_id=session['user_id'],
+            action="AI Progress Analysis",
+            details=f"Generated progress analysis for patient {patient_id} based on {len(followup_list)} sessions"
+        )
+        
+        return jsonify({
+            "response": ai_response,
+            "session_count": len(followup_list),
+            "latest_grade": followup_list[-1].get('grade', '') if followup_list else '',
+            "latest_perception": followup_list[-1].get('belief_treatment', '') if followup_list else ''
+        })
+        
+    except Exception as e:
+        print(f"AI progress analysis error: {str(e)}")
+        return jsonify({"error": "AI progress analysis failed"}), 500
+
+@app.route("/api/ai/followup-session-insights", methods=["POST"])
+@login_required()
+def ai_followup_session_insights():
+    """AI insights for a specific follow-up session"""
+    try:
+        data = request.get_json()
+        patient_id = data.get("patient_id")
+        session_number = data.get("session_number")
+        grade = data.get("grade", "")
+        perception = data.get("perception", "")
+        feedback = data.get("feedback", "")
+        treatment_plan = data.get("treatment_plan", "")
+        
+        if not patient_id:
+            return jsonify({"error": "Patient ID required"}), 400
+
+        # Get patient context
+        all_data = get_cumulative_patient_data(patient_id)
+        
+        if not all_data.get('patient'):
+            return jsonify({"error": "Patient not found"}), 404
+
+        patient = all_data['patient']
+        goals = all_data.get('smart_goals', {})
+        diagnosis = all_data.get('provisional_diagnosis', {})
+        
+        # Get previous sessions for context
+        previous_followups = db.collection('follow_ups') \
+                              .where('patient_id', '==', patient_id) \
+                              .order_by('session_date', direction=firestore.Query.DESCENDING) \
+                              .stream()
+        
+        previous_sessions = [f.to_dict() for f in previous_followups]
+
+        prompt = f"""
+Provide clinical insights for this specific follow-up session:
+
+PATIENT CONTEXT:
+- Patient: {patient.get('age_sex', '')}
+- Condition: {diagnosis.get('structure_fault', '')}
+- Treatment Goals: {goals.get('patient_goal', '')}
+
+CURRENT SESSION DATA:
+- Session Number: {session_number}
+- Grade of Achievement: {grade}
+- Patient Perception: {perception}
+- Patient Feedback: {feedback}
+- Treatment Plan: {treatment_plan}
+
+PREVIOUS PROGRESS:
+{chr(10).join([f"Session {p.get('session_number', '')}: {p.get('grade', '')} - {p.get('belief_treatment', '')}" for p in previous_sessions[:3]]) if previous_sessions else 'No previous sessions'}
+
+Based on this session data, provide:
+
+1. SESSION INTERPRETATION:
+   - Analysis of the grade of achievement
+   - Significance of patient perception
+   - Clinical meaning of patient feedback
+
+2. PROGRESS INDICATORS:
+   - Positive indicators from this session
+   - Areas of concern to monitor
+   - Comparison with previous sessions
+
+3. TREATMENT EFFECTIVENESS:
+   - Assessment of current treatment approach
+   - Suggested modifications based on session outcomes
+   - Patient response patterns
+
+4. NEXT SESSION PLANNING:
+   - Recommendations for next treatment session
+   - Areas to focus on
+   - Expected progression
+
+5. CLINICAL DECISION POINTS:
+   - Key decisions needed based on this session
+   - Risk factors to address
+   - Opportunities for treatment advancement
+
+Keep analysis practical and actionable for immediate clinical use.
+"""
+        
+        ai_response = call_claude(prompt)
+        
+        log_action(
+            user_id=session['user_id'],
+            action="AI Session Insights",
+            details=f"Generated insights for patient {patient_id} session {session_number}"
+        )
+        
+        return jsonify({"response": ai_response})
+        
+    except Exception as e:
+        print(f"AI session insights error: {str(e)}")
+        return jsonify({"error": "AI session insights failed"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

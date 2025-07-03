@@ -3,29 +3,241 @@
 <head>
   <title>Clinical Flags - PRISM</title>
   <link rel="stylesheet" href="/static/style.css">
+  <style>
+        .ai-section {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0A6847;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .ai-button {
+            background-color: #0A6847;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .ai-button:hover {
+            background-color: #085538;
+        }
+        .ai-response {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            white-space: pre-wrap;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .field-with-ai {
+            position: relative;
+        }
+        .ai-field-button {
+            position: absolute;
+            right: 10px;
+            top: 30px;
+            background-color: #0A6847;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .ai-field-button:hover {
+            background-color: #085538;
+        }
+        .flag-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+        .red-flag { border-left-color: #dc3545; background-color: #f8d7da; }
+        .orange-flag { border-left-color: #fd7e14; background-color: #ffe8d1; }
+        .yellow-flag { border-left-color: #ffc107; background-color: #fff3cd; }
+        .black-flag { border-left-color: #343a40; background-color: #d1d3d4; }
+        .blue-flag { border-left-color: #007bff; background-color: #cce7ff; }
+    </style>
 </head>
 <body>
   <div class="container">
     <h2>Clinical Flags for {{ patient_id }}</h2>
+    
+    <!-- AI Assistance Section -->
+    <div class="ai-section">
+        <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI Clinical Flags Assistant</h3>
+        <p style="margin-bottom: 15px; color: #555;">Get intelligent analysis of psychosocial and clinical flags based on patient assessment.</p>
+        <button type="button" class="ai-button" onclick="getFlagsInsights()">
+            Get AI Flags Analysis
+        </button>
+        <div id="ai-flags-insights" class="ai-response"></div>
+    </div>
+
     <form method="POST">
 
-      <label for="red_flag"><strong>Red Flag</strong> (Serious Pathology requiring further assessment or Medical/Surgical Intervention)</label>
-      <textarea class="input-field" name="red_flag" rows="2" placeholder="Describe if any red flags present..."></textarea>
+      <div class="flag-section red-flag">
+        <label for="red_flag"><strong>🔴 Red Flag</strong> (Serious Pathology requiring further assessment or Medical/Surgical Intervention)</label>
+        <div class="field-with-ai">
+            <textarea class="input-field" name="red_flag" id="red_flag" rows="2" placeholder="Describe if any red flags present..." style="padding-right: 50px;"></textarea>
+            <button type="button" class="ai-field-button" onclick="getRedFlagSuggestion()">🤖</button>
+        </div>
+      </div>
 
-      <label for="orange_flag"><strong>Orange Flag</strong> (Symptoms S/O Psychiatric Illness)</label>
-      <textarea class="input-field" name="orange_flag" rows="2" placeholder="Describe if any orange flags present..."></textarea>
+      <div class="flag-section orange-flag">
+        <label for="orange_flag"><strong>🟠 Orange Flag</strong> (Symptoms S/O Psychiatric Illness)</label>
+        <div class="field-with-ai">
+            <textarea class="input-field" name="orange_flag" id="orange_flag" rows="2" placeholder="Describe if any orange flags present..." style="padding-right: 50px;"></textarea>
+            <button type="button" class="ai-field-button" onclick="getOrangeFlagSuggestion()">🤖</button>
+        </div>
+      </div>
 
-      <label for="yellow_flag"><strong>Yellow Flag</strong> (Psychosocial Factors not fitting in Mental Illness Framework)</label>
-      <textarea class="input-field" name="yellow_flag" rows="2" placeholder="Describe if any yellow flags present..."></textarea>
+      <div class="flag-section yellow-flag">
+        <label for="yellow_flag"><strong>🟡 Yellow Flag</strong> (Psychosocial Factors not fitting in Mental Illness Framework)</label>
+        <div class="field-with-ai">
+            <textarea class="input-field" name="yellow_flag" id="yellow_flag" rows="2" placeholder="Describe if any yellow flags present..." style="padding-right: 50px;"></textarea>
+            <button type="button" class="ai-field-button" onclick="getYellowFlagSuggestion()">🤖</button>
+        </div>
+      </div>
 
-      <label for="black_flag"><strong>Black Flag</strong> (Nature of work/insurance/compensation related to workplace Injuries)</label>
-      <textarea class="input-field" name="black_flag" rows="2" placeholder="Describe if any black flags present..."></textarea>
+      <div class="flag-section black-flag">
+        <label for="black_flag"><strong>⚫ Black Flag</strong> (Nature of work/insurance/compensation related to workplace Injuries)</label>
+        <div class="field-with-ai">
+            <textarea class="input-field" name="black_flag" id="black_flag" rows="2" placeholder="Describe if any black flags present..." style="padding-right: 50px;"></textarea>
+            <button type="button" class="ai-field-button" onclick="getBlackFlagSuggestion()">🤖</button>
+        </div>
+      </div>
 
-      <label for="blue_flag"><strong>Blue Flag</strong> (Perception about workplace in terms of support & stress which may include the likelihood of injury)</label>
-      <textarea class="input-field" name="blue_flag" rows="2" placeholder="Describe if any blue flags present..."></textarea>
+      <div class="flag-section blue-flag">
+        <label for="blue_flag"><strong>🔵 Blue Flag</strong> (Perception about workplace in terms of support & stress which may include the likelihood of injury)</label>
+        <div class="field-with-ai">
+            <textarea class="input-field" name="blue_flag" id="blue_flag" rows="2" placeholder="Describe if any blue flags present..." style="padding-right: 50px;"></textarea>
+            <button type="button" class="ai-field-button" onclick="getBlueFlagSuggestion()">🤖</button>
+        </div>
+      </div>
 
       <button class="button" type="submit">Save & Continue to Objective Assessment</button>
     </form>
   </div>
+
+  <script>
+        const patientId = '{{ patient_id }}';
+
+        function getFlagsInsights() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '🤖 Analyzing...';
+            button.disabled = true;
+
+            fetch('/api/ai/clinical-flags', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    patient_id: patientId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('AI Error: ' + data.error);
+                } else {
+                    const responseDiv = document.getElementById('ai-flags-insights');
+                    responseDiv.innerHTML = '🤖 AI Clinical Flags Analysis:\n\n' + data.response;
+                    responseDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+            })
+            .finally(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+
+        function getRedFlagSuggestion() {
+            const suggestions = [
+                "No red flags identified based on current presentation",
+                "Age >50 with new onset back pain requiring investigation",
+                "Progressive neurological deficit requiring urgent assessment",
+                "History of cancer with new musculoskeletal symptoms",
+                "Severe trauma history requiring imaging studies",
+                "Signs of cauda equina syndrome requiring immediate referral"
+            ];
+            insertFlagSuggestion('red_flag', 'Red Flag Indicators', suggestions);
+        }
+
+        function getOrangeFlagSuggestion() {
+            const suggestions = [
+                "No orange flags identified in current assessment",
+                "Signs of clinical depression affecting treatment compliance",
+                "Anxiety disorders impacting functional recovery",
+                "Post-traumatic stress related to injury",
+                "Substance abuse concerns affecting rehabilitation",
+                "Severe mental health issues requiring specialist referral"
+            ];
+            insertFlagSuggestion('orange_flag', 'Orange Flag Indicators', suggestions);
+        }
+
+        function getYellowFlagSuggestion() {
+            const suggestions = [
+                "No significant yellow flags identified",
+                "Fear avoidance beliefs limiting activity participation",
+                "Catastrophic thinking about pain and prognosis",
+                "Poor coping strategies and low self-efficacy",
+                "Social isolation and lack of family support",
+                "Previous negative healthcare experiences",
+                "Passive attitude toward recovery and treatment"
+            ];
+            insertFlagSuggestion('yellow_flag', 'Yellow Flag Indicators', suggestions);
+        }
+
+        function getBlackFlagSuggestion() {
+            const suggestions = [
+                "No black flags identified in current case",
+                "Workplace injury with ongoing compensation claim",
+                "Dispute with insurance company affecting treatment",
+                "Job dissatisfaction prior to injury occurrence",
+                "Fear of job loss due to physical limitations",
+                "Adversarial relationship with employer",
+                "Financial stress related to work absence"
+            ];
+            insertFlagSuggestion('black_flag', 'Black Flag Indicators', suggestions);
+        }
+
+        function getBlueFlagSuggestion() {
+            const suggestions = [
+                "No blue flags identified in workplace assessment",
+                "High job demands with low decision latitude",
+                "Poor workplace ergonomics contributing to symptoms",
+                "Lack of supervisor and colleague support",
+                "High workplace stress and pressure",
+                "Limited options for modified duties",
+                "Perception of workplace as causing injury"
+            ];
+            insertFlagSuggestion('blue_flag', 'Blue Flag Indicators', suggestions);
+        }
+
+        function insertFlagSuggestion(fieldId, title, suggestions) {
+            const suggestionText = suggestions.join('\n• ');
+            const suggestion = prompt(`AI Suggestions for ${title}:\n\n• ${suggestionText}\n\nSelect relevant flag or enter 'None' if not applicable:`);
+            
+            if (suggestion) {
+                const textarea = document.getElementById(fieldId);
+                const currentText = textarea.value;
+                if (currentText) {
+                    textarea.value = currentText + '\n\n' + suggestion;
+                } else {
+                    textarea.value = suggestion;
+                }
+            }
+        }
+    </script>
 </body>
 </html>

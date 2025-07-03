@@ -3,12 +3,81 @@
 <head>
     <title>Follow-Up Log</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .ai-progress-section {
+            background-color: #e8f5e8;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+        }
+        .ai-button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .ai-button:hover {
+            background-color: #1e7e34;
+        }
+        .ai-button.secondary {
+            background-color: #17a2b8;
+        }
+        .ai-button.secondary:hover {
+            background-color: #138496;
+        }
+        .ai-response {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            display: none;
+            white-space: pre-wrap;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .progress-summary {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            border-left: 3px solid #ffc107;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>Follow-Up Log for {{ patient_id }}</h2>
 
+        <!-- AI Progress Analysis Section -->
+        <div class="ai-progress-section">
+            <h3 style="color: #28a745; margin-bottom: 15px;">📊 AI Progress Analysis</h3>
+            
+            <div style="margin-bottom: 15px;">
+                <button type="button" class="ai-button" onclick="getProgressAnalysis()">
+                    📈 Analyze Overall Progress
+                </button>
+                
+                <button type="button" class="ai-button secondary" onclick="getSessionInsights()">
+                    🔍 Get Latest Session Insights
+                </button>
+            </div>
+            
+            <div id="ai-progress-analysis" class="ai-response"></div>
+        </div>
+
         {% if followups %}
+            <!-- Quick Progress Summary -->
+            <div class="progress-summary">
+                <strong>Quick Summary:</strong> 
+                {{ followups|length }} sessions completed | 
+                Latest Grade: {{ followups[0]['grade'] }} | 
+                Latest Perception: {{ followups[0]['belief_treatment'] }}
+            </div>
+
             <table>
                 <tr>
                     <th>Session No.</th>
@@ -31,11 +100,130 @@
             </table>
         {% else %}
             <p>No follow-ups recorded for this patient yet.</p>
+            <div class="ai-progress-section">
+                <p style="color: #6c757d; font-style: italic;">
+                    📝 Add some follow-up sessions to see AI progress analysis and insights!
+                </p>
+            </div>
         {% endif %}
 
-    <div style="margin-top: 30px;">
-        <a href="/dashboard"><button class="button back-button">Back to Dashboard</button></a>
+        <div style="margin-top: 30px;">
+            <a href="/follow_up_new/{{ patient_id }}"><button class="button">Add New Follow-Up</button></a>
+            <a href="/dashboard"><button class="button back-button">Back to Dashboard</button></a>
+        </div>
     </div>
 
+    <script>
+        const patientId = '{{ patient_id }}';
+        const sessionCount = {{ followups|length }};
+
+        function getProgressAnalysis() {
+            if (sessionCount === 0) {
+                alert('No follow-up sessions found. Add some sessions first to get progress analysis.');
+                return;
+            }
+
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '📈 Analyzing...';
+            button.disabled = true;
+
+            fetch('/api/ai/followup-progress-analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    patient_id: patientId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('AI Error: ' + data.error);
+                } else {
+                    const responseDiv = document.getElementById('ai-progress-analysis');
+                    let content = '📊 Overall Progress Analysis (' + data.session_count + ' sessions):\n\n';
+                    
+                    if (data.latest_grade && data.latest_perception) {
+                        content += '📋 Latest Status: ' + data.latest_grade + ' | ' + data.latest_perception + '\n\n';
+                    }
+                    
+                    content += data.response;
+                    
+                    responseDiv.innerHTML = content;
+                    responseDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+            })
+            .finally(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+
+        function getSessionInsights() {
+            if (sessionCount === 0) {
+                alert('No follow-up sessions found. Add some sessions first to get session insights.');
+                return;
+            }
+
+            // Get the latest session data from the table
+            const tableRows = document.querySelectorAll('table tbody tr');
+            if (tableRows.length === 0) {
+                alert('No session data available.');
+                return;
+            }
+            
+            // Get data from the first row (latest session in your template)
+            const latestRow = tableRows[0];
+            const cells = latestRow.querySelectorAll('td');
+            
+            const sessionData = {
+                patient_id: patientId,
+                session_number: cells[0].textContent.trim(),
+                grade: cells[2].textContent.trim(),
+                perception: cells[3].textContent.trim(),
+                feedback: cells[4].textContent.trim(),
+                treatment_plan: cells[5].textContent.trim()
+            };
+
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '🔍 Analyzing...';
+            button.disabled = true;
+
+            fetch('/api/ai/followup-session-insights', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(sessionData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('AI Error: ' + data.error);
+                } else {
+                    const responseDiv = document.getElementById('ai-progress-analysis');
+                    let content = '🔍 Latest Session Insights (Session ' + sessionData.session_number + '):\n\n';
+                    content += '📋 Session Summary: ' + sessionData.grade + ' | ' + sessionData.perception + '\n\n';
+                    content += data.response;
+                    
+                    responseDiv.innerHTML = content;
+                    responseDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+            })
+            .finally(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+    </script>
 </body>
 </html>

@@ -3,32 +3,208 @@
 <head>
     <title>Subjective Examination - PRISM</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .ai-section {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0A6847;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .ai-button {
+            background-color: #0A6847;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .ai-button:hover {
+            background-color: #085538;
+        }
+        .ai-response {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            white-space: pre-wrap;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .field-with-ai {
+            position: relative;
+        }
+        .ai-field-button {
+            position: absolute;
+            right: 10px;
+            top: 30px;
+            background-color: #0A6847;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .ai-field-button:hover {
+            background-color: #085538;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>Subjective Examination for {{ patient_id }}</h2>
+        
+        <!-- AI Assistance Section -->
+        <div class="ai-section">
+            <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI ICF Framework Assistant</h3>
+            <p style="margin-bottom: 15px; color: #555;">Get AI suggestions for ICF framework categories based on patient history.</p>
+            <button type="button" class="ai-button" onclick="getSubjectiveInsights()">
+                Get AI ICF Suggestions
+            </button>
+            <div id="ai-icf-insights" class="ai-response"></div>
+        </div>
+
         <form method="POST">
             <label>Impairment of body structure:</label>
-            <textarea class="input-field" name="body_structure" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea class="input-field" name="body_structure" id="body_structure" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getICFSuggestion('body_structure')">🤖</button>
+            </div>
 
             <label>Impairment of body function:</label>
-            <textarea class="input-field" name="body_function" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea class="input-field" name="body_function" id="body_function" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getICFSuggestion('body_function')">🤖</button>
+            </div>
 
             <label>Activity Limitation / Participation / Restriction – Performance:</label>
-            <textarea class="input-field" name="activity_performance" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea class="input-field" name="activity_performance" id="activity_performance" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getICFSuggestion('activity_performance')">🤖</button>
+            </div>
 
             <label>Activity Limitation / Participation / Restriction – Capacity:</label>
-            <textarea class="input-field" name="activity_capacity" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea class="input-field" name="activity_capacity" id="activity_capacity" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getICFSuggestion('activity_capacity')">🤖</button>
+            </div>
 
             <label>Contextual Factors – Environmental:</label>
-            <textarea class="input-field" name="contextual_environmental" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea class="input-field" name="contextual_environmental" id="contextual_environmental" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getICFSuggestion('contextual_environmental')">🤖</button>
+            </div>
 
             <label>Contextual Factors – Personal:</label>
-            <textarea class="input-field" name="contextual_personal" rows="2" required></textarea>
+            <div class="field-with-ai">
+                <textarea class="input-field" name="contextual_personal" id="contextual_personal" rows="2" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getICFSuggestion('contextual_personal')">🤖</button>
+            </div>
 
             <button class="button" type="submit">Save & Continue to Patient Perspectives</button>
-
         </form>
     </div>
+
+    <script>
+        const patientId = '{{ patient_id }}';
+
+        function getSubjectiveInsights() {
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '🤖 Analyzing...';
+            button.disabled = true;
+
+            fetch('/api/ai/subjective-exam', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    patient_id: patientId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('AI Error: ' + data.error);
+                } else {
+                    const responseDiv = document.getElementById('ai-icf-insights');
+                    responseDiv.innerHTML = '🤖 AI ICF Framework Suggestions:\n\n' + data.response;
+                    responseDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+            })
+            .finally(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+
+        function getICFSuggestion(fieldType) {
+            const suggestions = {
+                body_structure: [
+                    "Joint structures (if joint-related condition)",
+                    "Muscle structures (if muscle dysfunction)",
+                    "Bone structures (if fracture/bone issue)",
+                    "Nervous system structures (if neurological)",
+                    "Connective tissue structures (if ligament/tendon issue)"
+                ],
+                body_function: [
+                    "Mobility of joint functions",
+                    "Muscle power functions", 
+                    "Pain sensations",
+                    "Sensory functions",
+                    "Control of voluntary movement functions"
+                ],
+                activity_performance: [
+                    "Walking and moving around",
+                    "Lifting and carrying objects",
+                    "Self-care activities",
+                    "Work-related activities",
+                    "Recreation and leisure activities"
+                ],
+                activity_capacity: [
+                    "Standardized environment assessment",
+                    "Maximum functional capacity",
+                    "Optimal performance potential",
+                    "Capacity without assistance",
+                    "Ideal environmental conditions"
+                ],
+                contextual_environmental: [
+                    "Physical environment factors",
+                    "Support and relationships",
+                    "Attitudes of others",
+                    "Services, systems and policies",
+                    "Technology and assistive devices"
+                ],
+                contextual_personal: [
+                    "Age and gender factors",
+                    "Lifestyle and habits",
+                    "Coping styles",
+                    "Education and profession",
+                    "Past experiences and overall behavior"
+                ]
+            };
+
+            const fieldSuggestions = suggestions[fieldType] || [];
+            const suggestionText = fieldSuggestions.join('\n• ');
+            const suggestion = prompt(`AI Suggestions for ${fieldType}:\n\n• ${suggestionText}\n\nEnter relevant details:`);
+            
+            if (suggestion) {
+                const textarea = document.getElementById(fieldType);
+                const currentText = textarea.value;
+                if (currentText) {
+                    textarea.value = currentText + ', ' + suggestion;
+                } else {
+                    textarea.value = suggestion;
+                }
+            }
+        }
+    </script>
 </body>
 </html>

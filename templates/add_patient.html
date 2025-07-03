@@ -3,32 +3,176 @@
 <head>
     <title>Add Patient - Physiologic PRISM</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .ai-section {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0A6847;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .ai-button {
+            background-color: #0A6847;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .ai-button:hover {
+            background-color: #085538;
+        }
+        .ai-response {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            white-space: pre-wrap;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .field-with-ai {
+            position: relative;
+        }
+        .ai-field-button {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #0A6847;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .ai-field-button:hover {
+            background-color: #085538;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>Add New Patient</h2>
-        <form method="POST">
-           
+        
+        <!-- AI Assistance Section -->
+        <div class="ai-section">
+            <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI Clinical Assistant</h3>
+            <p style="margin-bottom: 15px; color: #555;">Get intelligent insights after entering patient history information.</p>
+            <button type="button" class="ai-button" onclick="getIntakeInsights()">
+                Get AI Clinical Insights
+            </button>
+            <div id="ai-insights" class="ai-response"></div>
+        </div>
 
+        <form method="POST">
             <label>Patient Name:</label>
-            <input class="input-field" type="text" name="name" required>
+            <input class="input-field" type="text" name="name" id="name" required>
 
             <label>Age / Sex:</label>
-            <input class="input-field" type="text" name="age_sex" required>
+            <input class="input-field" type="text" name="age_sex" id="age_sex" required>
 
             <label>Contact Details:</label>
-            <input class="input-field" type="text" name="contact" required>
+            <input class="input-field" type="text" name="contact" id="contact" required>
 
             <label>Present History:</label>
-            <textarea class="input-field" name="present_history" rows="3" required></textarea>
+            <div class="field-with-ai">
+                <textarea class="input-field" name="present_history" id="present_history" rows="3" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getHistorySuggestions('present')" style="top: 30px;">🤖</button>
+            </div>
 
             <label>Past History:</label>
-            <textarea class="input-field" name="past_history" rows="3" required></textarea>
+            <div class="field-with-ai">
+                <textarea class="input-field" name="past_history" id="past_history" rows="3" required style="padding-right: 50px;"></textarea>
+                <button type="button" class="ai-field-button" onclick="getHistorySuggestions('past')" style="top: 30px;">🤖</button>
+            </div>
 
             <button class="button" type="submit">Save Patient</button>
         </form>
         <br>
         <a href="/dashboard">Back to Dashboard</a>
     </div>
+
+    <script>
+        function getIntakeInsights() {
+            const ageSex = document.getElementById('age_sex').value;
+            const presentHistory = document.getElementById('present_history').value;
+            const pastHistory = document.getElementById('past_history').value;
+
+            if (!ageSex && !presentHistory && !pastHistory) {
+                alert('Please fill in at least Age/Sex and Present History before getting AI insights.');
+                return;
+            }
+
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '🤖 Analyzing...';
+            button.disabled = true;
+
+            fetch('/api/ai/intake-insights', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    age_sex: ageSex,
+                    present_history: presentHistory,
+                    past_history: pastHistory
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('AI Error: ' + data.error);
+                } else {
+                    const responseDiv = document.getElementById('ai-insights');
+                    responseDiv.innerHTML = '🤖 AI Clinical Insights:\n\n' + data.response;
+                    responseDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                alert('Error: ' + error);
+            })
+            .finally(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            });
+        }
+
+        function getHistorySuggestions(type) {
+            const suggestions = {
+                present: [
+                    "Chief complaint and onset",
+                    "Location and quality of symptoms", 
+                    "Aggravating and relieving factors",
+                    "24-hour behavior of symptoms",
+                    "Functional limitations"
+                ],
+                past: [
+                    "Previous episodes of similar condition",
+                    "Past injuries or surgeries",
+                    "Medical conditions and medications",
+                    "Previous physiotherapy treatment",
+                    "Family history of musculoskeletal conditions"
+                ]
+            };
+
+            const suggestionText = suggestions[type].join('\n• ');
+            const suggestion = prompt(`AI Suggestions for ${type} history:\n\n• ${suggestionText}\n\nAdd any relevant details:`);
+            
+            if (suggestion) {
+                const textarea = document.getElementById(type + '_history');
+                const currentText = textarea.value;
+                if (currentText) {
+                    textarea.value = currentText + '\n\n' + suggestion;
+                } else {
+                    textarea.value = suggestion;
+                }
+            }
+        }
+    </script>
 </body>
 </html>

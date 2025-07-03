@@ -3,10 +3,82 @@
 <head>
     <title>View Patients – PRISM</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .ai-features-banner {
+            background-color: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #0A6847;
+        }
+        .ai-patient-actions {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .ai-button-small {
+            background-color: #6f42c1;
+            color: white;
+            padding: 4px 8px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .ai-button-small:hover {
+            background-color: #5a2d91;
+        }
+        .ai-button-small.progress {
+            background-color: #17a2b8;
+        }
+        .ai-button-small.progress:hover {
+            background-color: #138496;
+        }
+        .ai-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .ai-modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+        .ai-modal-close {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>Patient List</h2>
+
+        <!-- AI Features Banner -->
+        <div class="ai-features-banner">
+            <h3 style="color: #0A6847; margin-bottom: 10px;">🤖 AI-Enhanced Patient Management</h3>
+            <p style="margin: 0; color: #555;">
+                Each patient now has AI-powered insights for progress analysis, clinical summaries, and intelligent recommendations.
+            </p>
+        </div>
 
         <!-- Filter Form -->
         <form method="GET" class="filter-form">
@@ -38,10 +110,11 @@
                 <tr>
                     <td>{{ patient.patient_id }}</td>
                     <td>{{ patient.name }}</td>
-                    <td>{{ patient.age }}/{{ patient.sex }}</td>
+                    <td>{{ patient.age_sex }}</td>
                     <td>{{ patient.contact }}</td>
                     <td>{{ patient.created_at }}</td>
                     <td style="display: flex; flex-direction: column; gap: 4px;">
+                        <!-- Existing Actions -->
                         <a href="/edit_patient/{{ patient.patient_id }}"><button class="button">Edit</button></a>
                         <a href="/follow_up_new/{{ patient.patient_id }}"><button class="button green">Add Follow-Up</button></a>
                         <a href="/view_follow_ups/{{ patient.patient_id }}"><button class="button green">View Follow-Ups</button></a>
@@ -52,6 +125,15 @@
                             <button class="button">PDF</button>
                         </a>
 
+                        <!-- AI-Enhanced Actions -->
+                        <div class="ai-patient-actions">
+                            <button class="ai-button-small" onclick="getPatientSummary('{{ patient.patient_id }}')">
+                                🤖 AI Summary
+                            </button>
+                            <button class="ai-button-small progress" onclick="getProgressInsights('{{ patient.patient_id }}')">
+                                📊 Progress AI
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -61,5 +143,87 @@
         <br>
         <a href="/dashboard"><button class="button back-button">← Back to Dashboard</button></a>
     </div>
+
+    <!-- AI Modal for displaying insights -->
+    <div id="ai-modal" class="ai-modal">
+        <div class="ai-modal-content">
+            <div id="ai-modal-content"></div>
+            <button class="ai-modal-close" onclick="closeAIModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        function getPatientSummary(patientId) {
+            // For now, we'll use a simple alert. You can enhance this later.
+            fetch('/api/ai/followup-progress-analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    patient_id: patientId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('AI Summary: ' + data.error);
+                } else {
+                    showAIModal('🤖 AI Patient Summary - ' + patientId, data.response);
+                }
+            })
+            .catch(error => {
+                alert('Error getting AI summary: ' + error);
+            });
+        }
+
+        function getProgressInsights(patientId) {
+            fetch('/api/ai/followup-progress-analysis', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    patient_id: patientId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Progress Insights: ' + data.error);
+                } else {
+                    const content = '📊 Progress Analysis (' + data.session_count + ' sessions)\n\n' +
+                                  '📋 Latest: ' + data.latest_grade + ' | ' + data.latest_perception + '\n\n' +
+                                  data.response;
+                    showAIModal('📊 Progress Insights - ' + patientId, content);
+                }
+            })
+            .catch(error => {
+                alert('Error getting progress insights: ' + error);
+            });
+        }
+
+        function showAIModal(title, content) {
+            const modal = document.getElementById('ai-modal');
+            const modalContent = document.getElementById('ai-modal-content');
+            
+            modalContent.innerHTML = '<h3>' + title + '</h3>' +
+                                   '<pre style="white-space: pre-wrap; font-family: Arial; line-height: 1.6; background-color: #f8f9fa; padding: 15px; border-radius: 5px;">' + 
+                                   content + '</pre>';
+            
+            modal.style.display = 'flex';
+        }
+
+        function closeAIModal() {
+            document.getElementById('ai-modal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('ai-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAIModal();
+            }
+        });
+    </script>
 </body>
 </html>
