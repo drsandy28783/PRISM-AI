@@ -21,14 +21,13 @@
                     <td>{{ physio['email'] }}</td>
                     <td>{{ physio['phone'] }}</td>
                     <td>
-                        <a href="/approve_user/{{ physio['id'] }}">
+                        <a href="/approve_user/{{ physio['id'] }}" style="display:inline-block;">
                             <button class="button">Approve</button>
-                            <form action="/reject_user/{{ physio['id'] }}" method="get" style="display:inline;">
-                                {{ csrf_token() }}
-                                <button class="button" style="background-color: crimson;">Reject</button>
-                            </form>
-
                         </a>
+                        <form action="/reject_user/{{ physio['id'] }}" method="get" style="display:inline;">
+                            {{ csrf_token() }}
+                            <button class="button" style="background-color: crimson;">Reject</button>
+                        </form>
                     </td>
                 </tr>
                 {% endfor %}
