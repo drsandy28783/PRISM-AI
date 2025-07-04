@@ -3,7 +3,7 @@ name = "physiologic-prism"
 version = "0.1.0"
 description = "Clinical reasoning app for physiotherapists to manage patients and track progress."
 authors = ["Sandeep Rao <sandy_28783@rediffmail.com>"]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "flask==2.2.5",
     "Werkzeug>=2.2,<2.4",
