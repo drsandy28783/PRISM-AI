@@ -1,8 +1,8 @@
 [project]
-name = "python-template"
+name = "physiologic-prism"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "Clinical reasoning app for physiotherapists to manage patients and track progress."
+authors = ["Sandeep Rao <sandy_28783@rediffmail.com>"]
 requires-python = ">=3.11"
 dependencies = [
     "flask==2.2.5",
