@@ -57,11 +57,11 @@
             <h3 style="color: #28a745; margin-bottom: 15px;">📊 AI Progress Analysis</h3>
             
             <div style="margin-bottom: 15px;">
-                <button type="button" class="ai-button" onclick="getProgressAnalysis()">
+                <button type="button" class="ai-button" onclick="getProgressAnalysis(event)">
                     📈 Analyze Overall Progress
                 </button>
                 
-                <button type="button" class="ai-button secondary" onclick="getSessionInsights()">
+                <button type="button" class="ai-button secondary" onclick="getSessionInsights(event)">
                     🔍 Get Latest Session Insights
                 </button>
             </div>
@@ -117,7 +117,7 @@
         const patientId = '{{ patient_id }}';
         const sessionCount = {{ followups|length }};
 
-        function getProgressAnalysis() {
+        function getProgressAnalysis(event) {
             if (sessionCount === 0) {
                 alert('No follow-up sessions found. Add some sessions first to get progress analysis.');
                 return;
@@ -164,7 +164,7 @@
             });
         }
 
-        function getSessionInsights() {
+        function getSessionInsights(event) {
             if (sessionCount === 0) {
                 alert('No follow-up sessions found. Add some sessions first to get session insights.');
                 return;

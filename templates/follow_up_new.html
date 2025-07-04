@@ -61,7 +61,7 @@
         <!-- AI Assistance Section -->
         <div class="ai-section">
             <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI Follow-up Assistant</h3>
-            <button type="button" class="ai-button" onclick="getFollowupRecommendations()">
+            <button type="button" class="ai-button" onclick="getFollowupRecommendations(event)">
                 Get AI Session Recommendations
             </button>
             <div id="ai-recommendations" class="ai-response"></div>
@@ -130,7 +130,7 @@
             document.getElementById('session_number').value = '1';
         });
 
-        function getFollowupRecommendations() {
+        function getFollowupRecommendations(event) {
             const button = event.target;
             const originalText = button.innerHTML;
             button.innerHTML = '🤖 Analyzing...';
