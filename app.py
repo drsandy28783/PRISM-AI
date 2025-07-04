@@ -3,10 +3,14 @@ from flask import Flask, render_template, request, redirect, session, url_for, m
 import io, csv
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
-from firebase_init import firebase_admin  # initializes on import
-from firebase_admin import firestore
+import firebase_admin
+from firebase_admin import credentials, firestore
 from flask_wtf import CSRFProtect
 import anthropic
+# Initialize Firebase Admin SDK
+if not firebase_admin._apps:
+    cred = credentials.Certificate("serviceAccountKey.json")
+    firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
