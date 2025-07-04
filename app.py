@@ -5,11 +5,9 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from firebase_init import firebase_admin  # uses your existing setup
 from firebase_admin import firestore
-db = firestore.client()
 import anthropic
 import firebase_admin
 from firebase_admin import credentials, firestore
-import os
 
 if not firebase_admin._apps:
     cred_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
