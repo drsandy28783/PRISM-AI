@@ -1879,4 +1879,6 @@ Keep analysis practical and actionable for immediate clinical use.
         return jsonify({"error": "AI session insights failed"}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    debug_env = os.getenv("FLASK_DEBUG", "false")
+    debug_mode = str(debug_env).lower() in ("1", "true", "yes", "on")
+    app.run(debug=debug_mode)
