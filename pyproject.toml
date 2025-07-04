@@ -15,4 +15,5 @@ dependencies = [
     "gunicorn==23.0.0",
     "firebase-admin==6.9.0",
     "anthropic==0.57.1",
+    "Flask-WTF==1.2.2",
 ]

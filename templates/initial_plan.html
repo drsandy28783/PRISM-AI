@@ -73,6 +73,7 @@
         </div>
 
         <form method="POST">
+            {{ csrf_token() }}
             {% for section in [
                 ('active_movements', 'Active Movements'),
                 ('passive_movements', 'Passive Movements'),

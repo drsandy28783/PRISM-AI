@@ -69,6 +69,7 @@
         </div>
 
         <form method="POST">
+            {{ csrf_token() }}
             <label>Patient Name:</label>
             <input class="input-field" type="text" name="name" id="name" required>
 

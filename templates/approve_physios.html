@@ -24,6 +24,7 @@
                         <a href="/approve_user/{{ physio['id'] }}">
                             <button class="button">Approve</button>
                             <form action="/reject_user/{{ physio['id'] }}" method="get" style="display:inline;">
+                                {{ csrf_token() }}
                                 <button class="button" style="background-color: crimson;">Reject</button>
                             </form>
 

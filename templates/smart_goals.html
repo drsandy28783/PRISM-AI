@@ -83,6 +83,7 @@
         </div>
 
         <form method="POST">
+            {{ csrf_token() }}
 
             <label for="patient_goal">Goals (Patient-Centric):</label>
             <div class="field-with-ai">
