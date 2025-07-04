@@ -81,7 +81,7 @@ export CLAUDE_API_KEY="your-anthropic-key"
 ```
 
 ## Installation
-1. Ensure Python 3.11+ is installed.
+1. Ensure Python 3.12+ is installed.
 2. Install dependencies:
 ```bash
 pip install -r requirements.txt

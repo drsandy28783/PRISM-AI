@@ -435,6 +435,12 @@ sdist = { url = "https://files.pythonhosted.org/packages/5f/76/a4d2c4436dda4b0a1
 wheels = [{ url = "https://files.pythonhosted.org/packages/9f/1a/8b6d48162861009d1e017a9740431c78d860809773b66cac220a11aa3310/Flask-2.2.5-py3-none-any.whl", upload-time = 2023-05-02T14:42:34Z, size = 101817, hashes = { sha256 = "58107ed83443e86067e41eff4631b058178191a355886f8e479e347fa1285fdf" } }]
 
 [[packages]]
+name = "flask-wtf"
+version = "1.2.2"
+sdist = { url = "https://files.pythonhosted.org/packages/80/9b/f1cd6e41bbf874f3436368f2c7ee3216c1e82d666ff90d1d800e20eb1317/flask_wtf-1.2.2.tar.gz", upload-time = 2024-10-24T07:18:58Z, size = 42641, hashes = { sha256 = "79d2ee1e436cf570bccb7d916533fa18757a2f18c290accffab1b9a0b684666b" } }
+wheels = [{ url = "https://files.pythonhosted.org/packages/dc/19/354449145fbebb65e7c621235b6ad69bebcfaec2142481f044d0ddc5b5c5/flask_wtf-1.2.2-py3-none-any.whl", upload-time = 2024-10-24T07:18:56Z, size = 12779, hashes = { sha256 = "e93160c5c5b6b571cf99300b6e01b72f9a101027cab1579901f8b10c5daf0b70" } }]
+
+[[packages]]
 name = "fonttools"
 version = "4.58.5"
 sdist = { url = "https://files.pythonhosted.org/packages/52/97/5735503e58d3816b0989955ef9b2df07e4c99b246469bd8b3823a14095da/fonttools-4.58.5.tar.gz", upload-time = 2025-07-03T14:04:47Z, size = 3526243, hashes = { sha256 = "b2a35b0a19f1837284b3a23dd64fd7761b8911d50911ecd2bdbaf5b2d1b5df9c" } }
@@ -683,6 +689,12 @@ name = "httplib2"
 version = "0.22.0"
 sdist = { url = "https://files.pythonhosted.org/packages/3d/ad/2371116b22d616c194aa25ec410c9c6c37f23599dcd590502b74db197584/httplib2-0.22.0.tar.gz", upload-time = 2023-03-21T22:29:37Z, size = 351116, hashes = { sha256 = "d7a10bc5ef5ab08322488bde8c726eeee5c8618723fdb399597ec58f3d82df81" } }
 wheels = [{ url = "https://files.pythonhosted.org/packages/a8/6c/d2fbdaaa5959339d53ba38e94c123e4e84b8fbc4b84beb0e70d7c1608486/httplib2-0.22.0-py3-none-any.whl", upload-time = 2023-03-21T22:29:35Z, size = 96854, hashes = { sha256 = "14ae0a53c1ba8f3d37e9e27cf37eabb0fb9980f435ba405d546948b009dd64dc" } }]
+
+[[packages]]
+name = "httpx"
+version = "0.28.1"
+sdist = { url = "https://files.pythonhosted.org/packages/b1/df/48c586a5fe32a0f01324ee087459e112ebb7224f646c0b5023f5e79e9956/httpx-0.28.1.tar.gz", upload-time = 2024-12-06T15:37:23Z, size = 141406, hashes = { sha256 = "75e98c5f16b0f35b567856f597f06ff2270a374470a5c2392242528e3e3e42fc" } }
+wheels = [{ url = "https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl", upload-time = 2024-12-06T15:37:21Z, size = 73517, hashes = { sha256 = "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad" } }]
 
 [[packages]]
 name = "hyperframe"
@@ -1608,6 +1620,12 @@ name = "werkzeug"
 version = "2.3.8"
 sdist = { url = "https://files.pythonhosted.org/packages/3d/4b/d746f1000782c89d6c97df9df43ba8f4d126038608843d3560ae88d201b5/werkzeug-2.3.8.tar.gz", upload-time = 2023-11-08T18:37:03Z, size = 819747, hashes = { sha256 = "554b257c74bbeb7a0d254160a4f8ffe185243f52a52035060b761ca62d977f03" } }
 wheels = [{ url = "https://files.pythonhosted.org/packages/fd/21/0a674dfe66e9df9072c46269c882e9f901d36d987d8ea50ead033a9c1e01/werkzeug-2.3.8-py3-none-any.whl", upload-time = 2023-11-08T18:37:01Z, size = 242332, hashes = { sha256 = "bba1f19f8ec89d4d607a3bd62f1904bd2e609472d93cd85e9d4e178f472c3748" } }]
+
+[[packages]]
+name = "wtforms"
+version = "3.2.1"
+sdist = { url = "https://files.pythonhosted.org/packages/01/e4/633d080897e769ed5712dcfad626e55dbd6cf45db0ff4d9884315c6a82da/wtforms-3.2.1.tar.gz", upload-time = 2024-10-21T11:34:00Z, size = 137801, hashes = { sha256 = "df3e6b70f3192e92623128123ec8dca3067df9cfadd43d59681e210cfb8d4682" } }
+wheels = [{ url = "https://files.pythonhosted.org/packages/08/c9/2088fb5645cd289c99ebe0d4cdcc723922a1d8e1beaefb0f6f76dff9b21c/wtforms-3.2.1-py3-none-any.whl", upload-time = 2024-10-21T11:33:58Z, size = 152454, hashes = { sha256 = "583bad77ba1dd7286463f21e11aa3043ca4869d03575921d1a1698d0715e0fd4" } }]
 
 [[packages]]
 name = "xhtml2pdf"
