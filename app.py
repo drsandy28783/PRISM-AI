@@ -9,8 +9,8 @@ from flask_wtf import CSRFProtect
 import anthropic
 # Initialize Firebase Admin SDK
 if not firebase_admin._apps:
-    cred = credentials.Certificate("serviceAccountKey.json")
-    firebase_admin.initialize_app(cred)
+   cred = credentials.Certificate("/etc/secrets/serviceAccountKey.json")
+firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
