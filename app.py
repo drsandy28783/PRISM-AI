@@ -177,6 +177,7 @@ def admin_dashboard():
     )
 
 @app.route('/dashboard_data', methods=['POST'])
+@login_required()
 def dashboard_data():
     data = request.get_json()
     user_id = data.get('user_id')
