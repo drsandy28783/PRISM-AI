@@ -73,7 +73,7 @@
     </div>
 
     <form method="POST">
-        {{ csrf_token() }}
+        {{ form.hidden_tag() }}
         <label for="plan">Plan:</label>
         <div class="field-with-ai">
             <select name="plan" id="plan" class="input-field" required style="padding-right: 50px;">

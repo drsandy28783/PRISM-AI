@@ -68,7 +68,7 @@
         </div>
 
         <form method="POST">
-            {{ csrf_token() }}
+            {{ form.hidden_tag() }}
             <label for="treatment_plan">Treatment Plan:</label>
             <div class="field-with-ai">
                 <textarea name="treatment_plan" id="treatment_plan" class="input-field" rows="2" required style="padding-right: 50px;"></textarea>

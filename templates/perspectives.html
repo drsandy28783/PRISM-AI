@@ -69,7 +69,7 @@
     </div>
 
     <form method="POST" class="form-grid">
-    {{ csrf_token() }}
+    {{ form.hidden_tag() }}
       <div class="form-group">
         <label for="knowledge">Knowledge of the Illness:</label>
         <div class="field-with-ai">

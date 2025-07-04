@@ -68,7 +68,7 @@
         </div>
 
         <form method="POST">
-            {{ csrf_token() }}
+            {{ form.hidden_tag() }}
             <label>Session Number:</label>
             <div class="field-with-ai">
                 <input type="text" name="session_number" id="session_number" class="input-field" required>

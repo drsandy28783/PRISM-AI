@@ -35,7 +35,7 @@
                         </form>
                     {% else %}
                         <form action="/reactivate_user/{{ user['id'] }}" method="post" style="display:inline;">
-                            {{ csrf_token() }}
+                            {{ form.hidden_tag() }}
                             <button>Reactivate</button>
                         </form>
                     {% endif %}

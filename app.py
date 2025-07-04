@@ -7,6 +7,12 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from flask_wtf import CSRFProtect
 import anthropic
+app = Flask(__name__)
+secret_key = os.environ.get('SECRET_KEY')
+if not secret_key:
+    raise RuntimeError('SECRET_KEY environment variable is required')
+app.secret_key = secret_key
+csrf = CSRFProtect(app)
 # Initialize Firebase Admin SDK
 if not firebase_admin._apps:
    cred = credentials.Certificate("/etc/secrets/serviceAccountKey.json")
@@ -54,12 +60,7 @@ def log_action(user_id, action, details=None):
         'timestamp': firestore.SERVER_TIMESTAMP
     })
 
-app = Flask(__name__)
-secret_key = os.environ.get('SECRET_KEY')
-if not secret_key:
-    raise RuntimeError('SECRET_KEY environment variable is required')
-app.secret_key = secret_key
-csrf = CSRFProtect(app)
+
 
 
 def get_patient_or_404(patient_id):

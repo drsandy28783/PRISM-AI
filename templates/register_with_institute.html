@@ -8,7 +8,7 @@
     <div class="container">
         <h2>Register as Institute Physiotherapist</h2>
         <form method="POST">
-            {{ csrf_token() }}
+            {{ form.hidden_tag() }}
             <input class="input-field" type="text" name="name" placeholder="Full Name" required>
             <input class="input-field" type="email" name="email" placeholder="Email" required>
             <input class="input-field" type="text" name="phone" placeholder="Phone Number" required>
