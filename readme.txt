@@ -78,6 +78,11 @@ Hosting Environment:
 - Developed and tested on Replit (Python Flask)
 - SQLite as the database engine
 
+Configuration:
+- The Flask application requires the `SECRET_KEY` environment variable.
+  Set this to a secure, random string before starting the server or the
+  application will fail to launch.
+
 Planned Enhancements:
 - Mobile App version
 - Google Drive / OneDrive integration
