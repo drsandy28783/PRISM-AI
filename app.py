@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, session, url_for, make_response, jsonify
+from flask import Flask, render_template, request, redirect, session, url_for, make_response, jsonify, abort
 import io, csv
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -45,6 +45,20 @@ if not secret_key:
     raise RuntimeError('SECRET_KEY environment variable is required')
 app.secret_key = secret_key
 csrf = CSRFProtect(app)
+
+
+def get_patient_or_404(patient_id):
+    """Retrieve patient document and verify current user access."""
+    patients = db.collection('patients').where('patient_id', '==', patient_id).stream()
+    patient_doc = next(patients, None)
+    if not patient_doc:
+        abort(404, description="Patient not found.")
+
+    patient = patient_doc.to_dict()
+    if session.get('is_admin') == 0 and patient.get('physio_id') != session.get('user_id'):
+        abort(403, description="Access denied.")
+
+    return patient
 
 
 def login_required(approved_only=True):
@@ -585,18 +599,8 @@ def add_patient():
 @app.route('/subjective/<patient_id>', methods=['GET', 'POST'])
 @login_required()
 def subjective(patient_id):
-    # 🔍 Find patient by patient_id field
-    patients = db.collection('patients').where('patient_id', '==', patient_id).stream()
-    patient_doc = next(patients, None)
-
-    if not patient_doc:
-        return "Patient not found."
-
-    patient = patient_doc.to_dict()
-    physio_id = patient.get('physio_id')
-
-    if session.get('is_admin') == 0 and physio_id != session['user_id']:
-        return "Access denied."
+    # Retrieve patient and ensure current user has access
+    patient = get_patient_or_404(patient_id)
 
     if request.method == 'POST':
         data = {
@@ -688,16 +692,8 @@ def initial_plan(patient_id):
 @app.route('/patho_mechanism/<patient_id>', methods=['GET', 'POST'])
 @login_required()
 def patho_mechanism(patient_id):
-    # Fetch patient
-    patients = db.collection('patients').where('patient_id', '==', patient_id).stream()
-    patient_doc = next(patients, None)
-
-    if not patient_doc:
-        return "Patient not found."
-
-    patient = patient_doc.to_dict()
-    if session.get('is_admin') == 0 and patient.get('physio_id') != session['user_id']:
-        return "Access denied."
+    # Fetch patient and verify permissions
+    patient = get_patient_or_404(patient_id)
 
     if request.method == 'POST':
         data = {
@@ -892,16 +888,8 @@ def treatment_plan(patient_id):
 @app.route('/follow_up_new/<patient_id>', methods=['GET', 'POST'])
 @login_required()
 def follow_up_new(patient_id):
-    # Fetch patient
-    patients = db.collection('patients').where('patient_id', '==', patient_id).stream()
-    patient_doc = next(patients, None)
-
-    if not patient_doc:
-        return "Patient not found."
-
-    patient = patient_doc.to_dict()
-    if session.get('is_admin') == 0 and patient.get('physio_id') != session['user_id']:
-        return "Access denied."
+    # Fetch patient and verify permissions
+    patient = get_patient_or_404(patient_id)
 
     if request.method == 'POST':
         data = {
