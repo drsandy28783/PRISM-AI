@@ -93,25 +93,25 @@ def login_required(approved_only=True):
 def index():
     return render_template('index.html')
 
+from forms import RegisterForm
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        phone = request.form['phone']
-        password = generate_password_hash(request.form['password'])
+    form = RegisterForm()
+
+    if form.validate_on_submit():
+        name = form.name.data
+        email = form.email.data
+        phone = form.phone.data
+        password = generate_password_hash(form.password.data)
+
         institute = None
         is_admin = 0
         approved = 1
-        active = 1  # New users are active by default
+        active = 1
 
-        # Check if email or phone exists
-        existing = db.collection('users') \
-                     .where('email', '==', email) \
-                     .stream()
-        existing_phone = db.collection('users') \
-                           .where('phone', '==', phone) \
-                           .stream()
+        existing = db.collection('users').where('email', '==', email).stream()
+        existing_phone = db.collection('users').where('phone', '==', phone).stream()
 
         if any(existing) or any(existing_phone):
             return "Email or phone number already registered."
@@ -127,19 +127,24 @@ def register():
             'active': active
         }
 
-        user_ref = db.collection('users').add(user_data)
-        log_action(user_id=None, action="Register", details=f"{name} registered as Individual Physio")
+        db.collection('users').add(user_data)
+        log_action(user_id=None, action="Register", details=f"{name} registered")
 
         return redirect('/login')
 
-    return render_template('register.html')
+    return render_template('register.html', form=form)
 
+
+
+from forms import LoginForm
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        email = request.form['email']
-        password_input = request.form['password']
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        email = form.username.data
+        password_input = form.password.data
 
         users = db.collection('users').where('email', '==', email).stream()
         user_doc = next(users, None)
@@ -157,7 +162,7 @@ def login():
                 session['institute'] = user.get('institute')
                 session['is_admin'] = user['is_admin']
                 session['approved'] = user['approved']
-                log_action(user['id'], "Login", f"{user['name']} logged in.")
+                log_action(user['id'], "Login", f"{user['name']} logged in")
                 return redirect('/dashboard')
             elif user.get('active') == 0:
                 return "Your account has been deactivated. Contact your admin."
@@ -166,7 +171,7 @@ def login():
         else:
             return "Invalid login credentials."
 
-    return render_template('login.html')
+    return render_template('login.html', form=form)
 
 
 
