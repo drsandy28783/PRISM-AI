@@ -68,6 +68,7 @@
         </div>
 
         <form method="POST">
+            {{ csrf_token() }}
             <label>Impairment of body structure:</label>
             <div class="field-with-ai">
                 <textarea class="input-field" name="body_structure" id="body_structure" rows="2" required style="padding-right: 50px;"></textarea>

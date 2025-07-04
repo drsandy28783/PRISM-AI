@@ -8,6 +8,7 @@
     <div class="container">
         <h2>First Follow-Up for {{ patient_id }}</h2>
         <form method="POST">
+            {{ csrf_token() }}
             <div class="form-group">
                 <label for="achievement">Grade of Achievement:</label>
                 <select name="achievement" id="achievement" class="input-field" required>

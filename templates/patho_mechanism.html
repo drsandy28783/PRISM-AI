@@ -86,6 +86,7 @@
         </div>
 
         <form method="POST">
+            {{ csrf_token() }}
             <div class="form-grid">
 
                 <label for="area_involved">Area Involved:</label>

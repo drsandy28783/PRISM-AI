@@ -79,6 +79,7 @@
     </div>
 
     <form method="POST">
+    {{ csrf_token() }}
 
       <div class="flag-section red-flag">
         <label for="red_flag"><strong>🔴 Red Flag</strong> (Serious Pathology requiring further assessment or Medical/Surgical Intervention)</label>

@@ -82,6 +82,7 @@
 
         <!-- Filter Form -->
         <form method="GET" class="filter-form">
+            {{ csrf_token() }}
             <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <label>Filter by Name:
                     <input type="text" name="name" placeholder="Enter Name">

@@ -5,6 +5,7 @@ from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from firebase_init import firebase_admin  # initializes on import
 from firebase_admin import firestore
+from flask_wtf import CSRFProtect
 import anthropic
 
 db = firestore.client()
@@ -43,6 +44,7 @@ secret_key = os.environ.get('SECRET_KEY')
 if not secret_key:
     raise RuntimeError('SECRET_KEY environment variable is required')
 app.secret_key = secret_key
+csrf = CSRFProtect(app)
 
 
 def login_required(approved_only=True):
@@ -1094,6 +1096,7 @@ def get_cumulative_patient_data(patient_id):
 
 # ENHANCED AI ENDPOINTS - Replace your existing ones with these:
 
+@csrf.exempt
 @app.route("/api/ai/subjective-exam", methods=["POST"])
 @login_required()
 def ai_subjective_exam():
@@ -1132,6 +1135,7 @@ Provide single-line clinical statements for each section.
     except Exception as e:
         return jsonify({"error": "AI analysis failed"}), 500
 
+@csrf.exempt
 @app.route("/api/ai/patient-perspectives", methods=["POST"])
 @login_required()
 def ai_patient_perspectives():
@@ -1176,6 +1180,7 @@ Write each as a one-line clinical interpretation.
     except Exception as e:
         return jsonify({"error": "AI analysis failed"}), 500
 
+@csrf.exempt
 @app.route("/api/ai/initial-plan", methods=["POST"])
 @login_required()
 def ai_initial_plan():
@@ -1223,6 +1228,7 @@ Provide responses as concise bullet points.
     except Exception as e:
         return jsonify({"error": "AI analysis failed"}), 500
 
+@csrf.exempt
 @app.route("/api/ai/pathophysiological", methods=["POST"])
 @login_required()
 def ai_pathophysiological():
@@ -1274,6 +1280,7 @@ Keep clinical and evidence-based.
     except Exception as e:
         return jsonify({"error": "AI analysis failed"}), 500
 
+@csrf.exempt
 @app.route("/api/ai/clinical-flags", methods=["POST"])
 @login_required()
 def ai_clinical_flags():
@@ -1329,6 +1336,7 @@ Provide specific reasoning for each flag based on the clinical data.
     except Exception as e:
         return jsonify({"error": "AI analysis failed"}), 500
 
+@csrf.exempt
 @app.route("/api/ai/provisional-diagnosis", methods=["POST"])
 @login_required()
 def ai_provisional_diagnosis():
@@ -1396,6 +1404,7 @@ Format as structured clinical reasoning.
     except Exception as e:
         return jsonify({"error": "AI analysis failed"}), 500
 
+@csrf.exempt
 @app.route("/api/ai/smart-goals", methods=["POST"])
 @login_required()
 def ai_smart_goals():
@@ -1460,6 +1469,7 @@ Format as practical, patient-centered SMART goals.
     except Exception as e:
         return jsonify({"error": "AI analysis failed"}), 500
 
+@csrf.exempt
 @app.route("/api/ai/treatment-plan", methods=["POST"])
 @login_required()
 def ai_treatment_plan():
@@ -1557,6 +1567,7 @@ Format as a structured, evidence-based treatment plan ready for clinical impleme
 # ADD THESE FOLLOW-UP AI ENDPOINTS TO THE END OF YOUR APP.PY
 # (After your clinical workflow AI endpoints, before if __name__ == '__main__':)
 
+@csrf.exempt
 @app.route("/api/ai/followup-recommendations", methods=["POST"])
 @login_required()
 def ai_followup_recommendations():
@@ -1659,6 +1670,7 @@ Keep recommendations practical and specific to physiotherapy follow-up sessions.
         print(f"AI follow-up recommendations error: {str(e)}")
         return jsonify({"error": "AI recommendations failed"}), 500
 
+@csrf.exempt
 @app.route("/api/ai/followup-progress-analysis", methods=["POST"])
 @login_required()
 def ai_followup_progress_analysis():
@@ -1782,6 +1794,7 @@ Provide specific, evidence-based analysis suitable for clinical decision-making.
         print(f"AI progress analysis error: {str(e)}")
         return jsonify({"error": "AI progress analysis failed"}), 500
 
+@csrf.exempt
 @app.route("/api/ai/followup-session-insights", methods=["POST"])
 @login_required()
 def ai_followup_session_insights():
