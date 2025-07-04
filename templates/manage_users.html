@@ -29,13 +29,15 @@
                 </td>
                 <td>
                     {% if user['active'] %}
-                        <a href="/deactivate_user/{{ user['id'] }}">
+                        <form action="/deactivate_user/{{ user['id'] }}" method="post" style="display:inline;">
+                            {{ csrf_token() }}
                             <button style="background-color: crimson;">Deactivate</button>
-                        </a>
+                        </form>
                     {% else %}
-                        <a href="/reactivate_user/{{ user['id'] }}">
+                        <form action="/reactivate_user/{{ user['id'] }}" method="post" style="display:inline;">
+                            {{ csrf_token() }}
                             <button>Reactivate</button>
-                        </a>
+                        </form>
                     {% endif %}
                 </td>
             </tr>
