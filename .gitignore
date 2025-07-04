@@ -160,3 +160,4 @@ cython_debug/
 #.idea/
 
 firebase_key.json
+service_account.json
