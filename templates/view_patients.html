@@ -113,7 +113,13 @@
                     <td>{{ patient.name }}</td>
                     <td>{{ patient.age_sex }}</td>
                     <td>{{ patient.contact }}</td>
-                    <td>{{ patient.created_at }}</td>
+                    <td>
+                        {% if patient.created_at %}
+                            {{ patient.created_at.strftime('%Y-%m-%d %H:%M') }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
                     <td style="display: flex; flex-direction: column; gap: 4px;">
                         <!-- Existing Actions -->
                         <a href="/edit_patient/{{ patient.patient_id }}"><button class="button">Edit</button></a>

@@ -582,7 +582,8 @@ def add_patient():
                 'age_sex': age_sex,
                 'contact': contact,
                 'present_history': present_history,
-                'past_history': past_history
+                'past_history': past_history,
+                'created_at': firestore.SERVER_TIMESTAMP
             })
             return new_id
 
