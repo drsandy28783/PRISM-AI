@@ -3,16 +3,9 @@ from flask import Flask, render_template, request, redirect, session, url_for, m
 import io, csv
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
-from firebase_init import firebase_admin  # uses your existing setup
+from firebase_init import firebase_admin  # initializes on import
 from firebase_admin import firestore
 import anthropic
-import firebase_admin
-from firebase_admin import credentials, firestore
-
-if not firebase_admin._apps:
-    cred_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
-    cred = credentials.Certificate(cred_path)
-    firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
