@@ -67,6 +67,7 @@ The application relies on the following environment variables:
 | `FIREBASE_KEY` | Contents of your Firebase service account JSON used to initialize Firestore. |
 | `CLAUDE_API_KEY` | Anthropic API key for AI-powered features. |
 | `FLASK_DEBUG` | Optional; set to `1` to enable debug mode. |
+| `AI_DEBUG` | Optional; set to `1` or `true` to display detailed AI error messages. |
 
 ### Configuring Firebase Credentials
 Create a Firebase service account in your Firebase project and download the JSON credentials. Set the `FIREBASE_KEY` environment variable to the entire JSON string. Example:

@@ -11,7 +11,7 @@ import anthropic
 db = firestore.client()
 
 
-DEBUG_AI = True  # Set to False in production
+DEBUG_AI = os.getenv("AI_DEBUG", "False").lower() in ("1", "true", "yes")
 client = anthropic.Anthropic(api_key=os.getenv("CLAUDE_API_KEY"))
 
 def call_claude(prompt):
