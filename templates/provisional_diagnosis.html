@@ -65,7 +65,7 @@
         <div class="ai-section">
             <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI Diagnostic Assistant</h3>
             <p style="margin-bottom: 15px; color: #555;">Get comprehensive diagnostic analysis based on complete clinical assessment.</p>
-            <button type="button" class="ai-button" onclick="getDiagnosticInsights()">
+            <button type="button" class="ai-button" onclick="getDiagnosticInsights(event)">
                 Get AI Diagnostic Analysis
             </button>
             <div id="ai-diagnostic-insights" class="ai-response"></div>
@@ -120,7 +120,7 @@
     <script>
         const patientId = '{{ patient_id }}';
 
-        function getDiagnosticInsights() {
+        function getDiagnosticInsights(event) {
             const button = event.target;
             const originalText = button.innerHTML;
             button.innerHTML = '🤖 Analyzing...';

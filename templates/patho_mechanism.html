@@ -79,7 +79,7 @@
         <div class="ai-section">
             <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI Pathophysiology Assistant</h3>
             <p style="margin-bottom: 15px; color: #555;">Get intelligent analysis of pathophysiological mechanisms based on clinical assessment.</p>
-            <button type="button" class="ai-button" onclick="getPathoInsights()">
+            <button type="button" class="ai-button" onclick="getPathoInsights(event)">
                 Get AI Pathophysiology Analysis
             </button>
             <div id="ai-patho-insights" class="ai-response"></div>
@@ -172,7 +172,7 @@
     <script>
         const patientId = '{{ patient_id }}';
 
-        function getPathoInsights() {
+        function getPathoInsights(event) {
             const button = event.target;
             const originalText = button.innerHTML;
             button.innerHTML = '🤖 Analyzing...';

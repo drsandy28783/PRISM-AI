@@ -62,7 +62,7 @@
     <div class="ai-section">
         <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI Patient Perspectives Assistant</h3>
         <p style="margin-bottom: 15px; color: #555;">Get intelligent analysis of patient perspectives based on clinical history.</p>
-        <button type="button" class="ai-button" onclick="getPerspectiveInsights()">
+        <button type="button" class="ai-button" onclick="getPerspectiveInsights(event)">
             Get AI Perspective Analysis
         </button>
         <div id="ai-perspective-insights" class="ai-response"></div>
@@ -165,7 +165,7 @@
 <script>
     const patientId = '{{ patient_id }}';
 
-    function getPerspectiveInsights() {
+    function getPerspectiveInsights(event) {
         const button = event.target;
         const originalText = button.innerHTML;
         button.innerHTML = '🤖 Analyzing...';

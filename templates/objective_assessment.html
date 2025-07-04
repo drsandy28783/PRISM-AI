@@ -66,7 +66,7 @@
     <div class="ai-section">
         <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI Objective Assessment Assistant</h3>
         <p style="margin-bottom: 15px; color: #555;">Get intelligent recommendations for objective assessment planning based on clinical findings.</p>
-        <button type="button" class="ai-button" onclick="getObjectiveInsights()">
+        <button type="button" class="ai-button" onclick="getObjectiveInsights(event)">
             Get AI Assessment Recommendations
         </button>
         <div id="ai-objective-insights" class="ai-response"></div>
@@ -97,7 +97,7 @@
 <script>
     const patientId = '{{ patient_id }}';
 
-    function getObjectiveInsights() {
+    function getObjectiveInsights(event) {
         const button = event.target;
         const originalText = button.innerHTML;
         button.innerHTML = '🤖 Analyzing...';

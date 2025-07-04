@@ -61,7 +61,7 @@
         <div class="ai-section">
             <h3 style="color: #0A6847; margin-bottom: 15px;">🤖 AI ICF Framework Assistant</h3>
             <p style="margin-bottom: 15px; color: #555;">Get AI suggestions for ICF framework categories based on patient history.</p>
-            <button type="button" class="ai-button" onclick="getSubjectiveInsights()">
+            <button type="button" class="ai-button" onclick="getSubjectiveInsights(event)">
                 Get AI ICF Suggestions
             </button>
             <div id="ai-icf-insights" class="ai-response"></div>
@@ -112,7 +112,7 @@
     <script>
         const patientId = '{{ patient_id }}';
 
-        function getSubjectiveInsights() {
+        function getSubjectiveInsights(event) {
             const button = event.target;
             const originalText = button.innerHTML;
             button.innerHTML = '🤖 Analyzing...';
