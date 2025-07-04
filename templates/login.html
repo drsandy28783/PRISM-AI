@@ -1,4 +1,3 @@
-<link rel="stylesheet" href="/static/style.css">
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,10 +8,15 @@
     <div class="container">
         <h2>Login</h2>
         <form method="POST">
-            {{ csrf_token() }}
-            <input class="input-field" type="email" name="email" placeholder="Email" required>
-            <input class="input-field" type="password" name="password" placeholder="Password" required>
-            <button class="button" type="submit">Login</button>
+            {{ form.hidden_tag() }}
+
+            {{ form.username.label }}
+            {{ form.username(class="input-field") }}
+
+            {{ form.password.label }}
+            {{ form.password(class="input-field") }}
+
+            {{ form.submit(class="button") }}
         </form>
         <br>
         <a href="/register">New user? Register here</a>
