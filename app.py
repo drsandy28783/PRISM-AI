@@ -11,6 +11,17 @@ import anthropic
 db = firestore.client()
 
 
+@firestore.transactional
+def _increment_patient_counter(transaction):
+    """Atomically increments the patient counter and returns the new value."""
+    counter_ref = db.collection("counters").document("patient_id")
+    snapshot = counter_ref.get(transaction=transaction)
+    last = snapshot.get("last") if snapshot.exists else 0
+    new_last = last + 1
+    transaction.set(counter_ref, {"last": new_last})
+    return new_last
+
+
 DEBUG_AI = os.getenv("AI_DEBUG", "False").lower() in ("1", "true", "yes")
 client = anthropic.Anthropic(api_key=os.getenv("CLAUDE_API_KEY"))
 
@@ -545,30 +556,24 @@ def add_patient():
         present_history = request.form['present_history']
         past_history = request.form['past_history']
 
-        # Scan all patient_ids and get max PAT-nnn
-        patients = db.collection('patients').stream()
-        max_id = 0
-        for p in patients:
-            data = p.to_dict()
-            pid = data.get('patient_id', '')
-            if pid.startswith('PAT-'):
-                try:
-                    num = int(pid.split('-')[1])
-                    max_id = max(max_id, num)
-                except:
-                    pass
+        @firestore.transactional
+        def txn_add_patient(transaction):
+            new_num = _increment_patient_counter(transaction)
+            new_id = f"PAT-{new_num:03d}"
+            patient_ref = db.collection('patients').document()
+            transaction.set(patient_ref, {
+                'physio_id': session['user_id'],
+                'patient_id': new_id,
+                'name': name,
+                'age_sex': age_sex,
+                'contact': contact,
+                'present_history': present_history,
+                'past_history': past_history
+            })
+            return new_id
 
-        new_id = f"PAT-{max_id + 1:03d}"
-
-        db.collection('patients').add({
-            'physio_id': session['user_id'],
-            'patient_id': new_id,
-            'name': name,
-            'age_sex': age_sex,
-            'contact': contact,
-            'present_history': present_history,
-            'past_history': past_history
-        })
+        transaction = db.transaction()
+        new_id = txn_add_patient(transaction)
 
         log_action(
             user_id=session['user_id'],
