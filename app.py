@@ -419,7 +419,7 @@ def export_audit_logs():
     return response
 
 
-@app.route('/reject_user/<user_id>')
+@app.route('/reject_user/<user_id>', methods=['POST'])
 @login_required()
 def reject_user(user_id):
     if session.get('is_admin') != 1:
@@ -484,7 +484,7 @@ def register_with_institute():
 
     return render_template('register_with_institute.html', institutes=institutes)
 
-@app.route('/approve_user/<user_id>')
+@app.route('/approve_user/<user_id>', methods=['POST'])
 @login_required()
 def approve_user(user_id):
     if session.get('is_admin') != 1:
@@ -526,7 +526,7 @@ def manage_users():
 
     return render_template('manage_users.html', users=user_list)
 
-@app.route('/deactivate_user/<user_id>')
+@app.route('/deactivate_user/<user_id>', methods=['POST'])
 @login_required()
 def deactivate_user(user_id):
     if session.get('is_admin') != 1:
@@ -542,7 +542,7 @@ def deactivate_user(user_id):
 
     return redirect('/manage_users')
 
-@app.route('/reactivate_user/<user_id>')
+@app.route('/reactivate_user/<user_id>', methods=['POST'])
 @login_required()
 def reactivate_user(user_id):
     if session.get('is_admin') != 1:

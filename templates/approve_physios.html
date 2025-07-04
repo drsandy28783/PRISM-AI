@@ -21,10 +21,11 @@
                     <td>{{ physio['email'] }}</td>
                     <td>{{ physio['phone'] }}</td>
                     <td>
-                        <a href="/approve_user/{{ physio['id'] }}" style="display:inline-block;">
+                        <form action="/approve_user/{{ physio['id'] }}" method="post" style="display:inline;">
+                            {{ csrf_token() }}
                             <button class="button">Approve</button>
-                        </a>
-                        <form action="/reject_user/{{ physio['id'] }}" method="get" style="display:inline;">
+                        </form>
+                        <form action="/reject_user/{{ physio['id'] }}" method="post" style="display:inline;">
                             {{ csrf_token() }}
                             <button class="button" style="background-color: crimson;">Reject</button>
                         </form>
