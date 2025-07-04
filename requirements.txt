@@ -7,4 +7,3 @@ cairocffi>=1.4.0
 gunicorn==23.0.0
 firebase-admin==6.9.0
 anthropic==0.57.1
-httpx==0.28.1
