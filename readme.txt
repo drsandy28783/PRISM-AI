@@ -76,8 +76,8 @@ Routes:
 
 Hosting Environment:
 - Developed and tested on Replit (Python Flask)
-- SQLite as the database engine
-
+- Firebase Firestore is used as the database engine
+- Push notifications are not currently implemented
 Configuration:
 - The Flask application requires the `SECRET_KEY` environment variable.
   Set this to a secure, random string before starting the server or the
