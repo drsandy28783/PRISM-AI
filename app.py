@@ -39,7 +39,10 @@ def log_action(user_id, action, details=None):
     })
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'fallback_default')
+secret_key = os.environ.get('SECRET_KEY')
+if not secret_key:
+    raise RuntimeError('SECRET_KEY environment variable is required')
+app.secret_key = secret_key
 
 
 def login_required(approved_only=True):
